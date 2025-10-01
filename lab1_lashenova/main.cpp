@@ -9,7 +9,7 @@ struct Pipe {
     string name;
     double length = 0;
     double diameter = 0;
-    bool isUnderRepair = false;
+    bool UnderRepair = false;
 };
 
 struct OilPumpingStation {
@@ -55,7 +55,7 @@ void createPipe(Pipe& pipe) {
         pipe.diameter = getValidInput<double>("Enter pipe diameter (mm): ");
     }
 
-    pipe.isUnderRepair = false;
+    pipe.UnderRepair = false;
     cout << "Pipe '" << pipe.name << "' added successfully!\n" << endl;
 }
 
@@ -102,7 +102,7 @@ void displayAllObjects(const Pipe& pipe, const OilPumpingStation& station) {
         cout << "Name: " << pipe.name << endl;
         cout << "Length: " << pipe.length << " km" << endl;
         cout << "Diameter: " << pipe.diameter << " mm" << endl;
-        cout << "Under repair: " << (pipe.isUnderRepair ? "Yes" : "No") << endl;
+        cout << "Under repair: " << (pipe.UnderRepair ? "Yes" : "No") << endl;
     }
 
     cout << "\n--- Oil Pumping Station ---" << endl;
@@ -128,7 +128,7 @@ void editPipe(Pipe& pipe) {
         return;
     }
     cout << "\n=== Edit Pipe '" << pipe.name << "' ===" << endl;
-    cout << "Current repair status: " << (pipe.isUnderRepair ? "Under repair" : "Operational") << endl;
+    cout << "Current repair status: " << (pipe.UnderRepair ? "Under repair" : "Operational") << endl;
     cout << "1. Start repair" << endl;
     cout << "2. Finish repair" << endl;
     cout << "0. Cancel" << endl;
@@ -137,8 +137,8 @@ void editPipe(Pipe& pipe) {
 
     switch (choice) {
     case 1:
-        if (!pipe.isUnderRepair) {
-            pipe.isUnderRepair = true;
+        if (!pipe.UnderRepair) {
+            pipe.UnderRepair = true;
             cout << "Repair started." << endl;
         }
         else {
@@ -146,8 +146,8 @@ void editPipe(Pipe& pipe) {
         }
         break;
     case 2:
-        if (pipe.isUnderRepair) {
-            pipe.isUnderRepair = false;
+        if (pipe.UnderRepair) {
+            pipe.UnderRepair = false;
             cout << "Repair finished." << endl;
         }
         else {
@@ -214,7 +214,7 @@ void saveToFile(const Pipe& pipe, const OilPumpingStation& station, const string
         file << pipe.name << endl;
         file << pipe.length << endl;
         file << pipe.diameter << endl;
-        file << pipe.isUnderRepair << endl;
+        file << pipe.UnderRepair << endl;
     }
 
     if (!station.name.empty()) {
@@ -244,7 +244,7 @@ void loadFromFile(Pipe& pipe, OilPumpingStation& station, const string& filename
     while (getline(file, line)) {
         if (line == "PIPE") {
             getline(file, pipe.name);
-            file >> pipe.length >> pipe.diameter >> pipe.isUnderRepair;
+            file >> pipe.length >> pipe.diameter >> pipe.UnderRepair;
             file.ignore();
         }
         else if (line == "STATION") {
