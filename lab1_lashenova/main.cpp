@@ -7,17 +7,17 @@ using namespace std;
 
 struct Pipe {
     string name;
-    double length = 0;
-    double diameter = 0;
-    bool UnderRepair = false;
+    double length;
+    double diameter;
+    bool UnderRepair;
 };
 
 struct OilPumpingStation {
     string name;
-    int totalPumps = 0;
-    int workingPumps = 0;
-    double maxCapacity = 0;
-    int stationClass = 1;
+    int totalPumps;
+    int workingPumps;
+    double maxCapacity;
+    int stationClass;
 };
 
 template <typename T>
