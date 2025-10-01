@@ -1,5 +1,11 @@
 PIPE
-оаооовс
-67
-4
+2
+20
+30
 0
+STATION
+Rodionovskaya
+7
+7
+50
+5
