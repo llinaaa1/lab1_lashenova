@@ -1,336 +1,319 @@
 ﻿#include <iostream>
-#include <fstream>        // Для работы с файлами (ifstream, ofstream)
-#include <string>         // Для работы со строками string
-#include <limits> 
+#include <string>
+#include <limits>
+#include <fstream>
 
 using namespace std;
 
 struct Pipe {
-    string name;          // Название трубы (километровая отметка)
-    double length;        // Длина в километрах (double для дробных чисел)
-    int diameter;         // Диаметр в миллиметрах (целое число)
-    bool underRepair;     // Флаг ремонта: true - в ремонте, false - работает
-
-    // Метод чтения данных с консоли
-    void readFromConsole() {
-        cout << "Enter pipe name: ";      // Вывод приглашения
-        cin.ignore();                     // Очистка буфера от предыдущего ввода
-        getline(cin, name);               // Чтение всей строки названия
-
-        // Ввод длины с проверкой
-        cout << "Enter pipe length (km): ";
-        while (!(cin >> length) || length <= 0) {  // Пока ввод некорректен ИЛИ длина ≤ 0
-            cout << "Error! Enter positive number: ";
-            cin.clear();                          // Сброс флагов ошибок cin
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера
-        }
-
-        // Ввод диаметра с проверкой
-        cout << "Enter pipe diameter (mm): ";
-        while (!(cin >> diameter) || diameter <= 0) { // Аналогичная проверка
-            cout << "Error! Enter positive integer: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-
-        // Ввод статуса ремонта
-        cout << "Is pipe under repair? (1 - yes, 0 - no): ";
-        int repair;  // Временная переменная
-        while (!(cin >> repair) || (repair != 0 && repair != 1)) { // Проверка на 0 или 1
-            cout << "Error! Enter 1 or 0: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-        underRepair = (repair == 1);  // Преобразование 1/0 в true/false
-    }
-
-    // Метод вывода информации на консоль
-    void display() const {  // const - метод не меняет объект
-        cout << "Pipe: " << name << endl;                    // Вывод названия
-        cout << "Length: " << length << " km" << endl;       // Вывод длины
-        cout << "Diameter: " << diameter << " mm" << endl;   // Вывод диаметра
-        // Тернарный оператор: условие ? значение_если_true : значение_если_false
-        cout << "Repair status: " << (underRepair ? "Under repair" : "Operational") << endl;
-        cout << "------------------------" << endl;          // Разделитель
-    }
-
-    // Метод изменения статуса ремонта
-    void toggleRepair() {
-        cout << "Current status: " << (underRepair ? "Under repair" : "Operational") << endl;
-        cout << "Change status? (1 - yes, 0 - no): ";
-        int choice;
-        while (!(cin >> choice) || (choice != 0 && choice != 1)) { // Проверка ввода
-            cout << "Error! Enter 1 or 0: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-
-        if (choice == 1) {              // Если пользователь выбрал изменить
-            underRepair = !underRepair; // Инверсия: true становится false и наоборот
-            cout << "Status changed to: " << (underRepair ? "Under repair" : "Operational") << endl;
-        }
-    }
-
-    // Сохранение данных в файл
-    void saveToFile(ofstream& file) const {  // ofstream - выходной файловый поток
-        file << "PIPE" << endl;     // Метка для идентификации при загрузке
-        file << name << endl;       // Сохранение названия
-        file << length << endl;     // Сохранение длины
-        file << diameter << endl;   // Сохранение диаметра
-        file << underRepair << endl;// Сохранение статуса (1 или 0)
-    }
-
-    // Загрузка данных из файла
-    void loadFromFile(ifstream& file) {  // ifstream - входной файловый поток
-        cin.ignore();               // Очистка буфера консоли
-        getline(file, name);        // Чтение названия из файла
-        file >> length;             // Чтение длины
-        file >> diameter;           // Чтение диаметра
-        file >> underRepair;        // Чтение статуса
-        file.ignore();              // Пропуск символа новой строки
-    }
+    string name;
+    double length = 0;
+    double diameter = 0;
+    bool isUnderRepair = false;
 };
 
 struct OilPumpingStation {
-    string name;           // Название станции
-    int totalPumps;        // Общее количество насосов
-    int workingPumps;      // Количество работающих насосов
-    double maxCapacity;    // Максимальная пропускная способность (м³/час)
-    int stationClass;      // Класс станции (1-5)
-
-    void readFromConsole() {
-        cout << "Enter station name: ";
-        cin.ignore();
-        getline(cin, name);
-
-        // Ввод общего количества насосов
-        cout << "Enter total number of pumps: ";
-        while (!(cin >> totalPumps) || totalPumps <= 0) {
-            cout << "Error! Enter positive integer: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-
-        // Ввод работающих насосов с проверкой диапазона
-        cout << "Enter number of working pumps: ";
-        while (!(cin >> workingPumps) || workingPumps < 0 || workingPumps > totalPumps) {
-            cout << "Error! Enter number from 0 to " << totalPumps << ": ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-
-        // Ввод пропускной способности
-        cout << "Enter maximum capacity (m³/hour): ";
-        while (!(cin >> maxCapacity) || maxCapacity <= 0) {
-            cout << "Error! Enter positive number: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-
-        // Ввод класса станции (1-5)
-        cout << "Enter station class (1-5): ";
-        while (!(cin >> stationClass) || stationClass < 1 || stationClass > 5) {
-            cout << "Error! Enter number from 1 to 5: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-    }
-
-    void display() const {
-        cout << "Oil Pumping Station: " << name << endl;
-        cout << "Total pumps: " << totalPumps << endl;
-        cout << "Working pumps: " << workingPumps << endl;
-        cout << "Maximum capacity: " << maxCapacity << " m³/hour" << endl;
-        cout << "Station class: " << stationClass << endl;
-        cout << "Current efficiency: " << calculateEfficiency() << "%" << endl;
-        cout << "------------------------" << endl;
-    }
-
-    // Расчет эффективности работы станции
-    double calculateEfficiency() const {
-        if (totalPumps == 0) return 0.0;  // Защита от деления на ноль
-        // static_cast<double> - преобразование int в double для точного деления
-        return (static_cast<double>(workingPumps) / totalPumps) * 100.0;
-    }
-
-    // Управление насосами (запуск/остановка)
-    void managePump() {
-        cout << "Current state: " << workingPumps << " of " << totalPumps << " pumps working" << endl;
-        cout << "Efficiency: " << calculateEfficiency() << "%" << endl;
-        cout << "1 - Start pump\n2 - Stop pump\n0 - Cancel\nChoose action: ";
-
-        int choice;
-        while (!(cin >> choice) || choice < 0 || choice > 2) { // Проверка 0,1,2
-            cout << "Error! Enter 0, 1 or 2: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-
-        if (choice == 1 && workingPumps < totalPumps) {  // Запуск насоса
-            workingPumps++;
-            cout << "Pump started. Now " << workingPumps << " pumps working" << endl;
-            cout << "New efficiency: " << calculateEfficiency() << "%" << endl;
-        }
-        else if (choice == 2 && workingPumps > 0) {    // Остановка насоса
-            workingPumps--;
-            cout << "Pump stopped. Now " << workingPumps << " pumps working" << endl;
-            cout << "New efficiency: " << calculateEfficiency() << "%" << endl;
-        }
-        else if (choice != 0) {
-            cout << "Action not possible!" << endl;  // Невозможное действие
-        }
-    }
-
-    void saveToFile(ofstream& file) const {
-        file << "STATION" << endl;    // Метка для идентификации
-        file << name << endl;
-        file << totalPumps << endl;
-        file << workingPumps << endl;
-        file << maxCapacity << endl;
-        file << stationClass << endl;
-    }
-
-    void loadFromFile(ifstream& file) {
-        cin.ignore();
-        getline(file, name);
-        file >> totalPumps;
-        file >> workingPumps;
-        file >> maxCapacity;
-        file >> stationClass;
-        file.ignore();
-    }
+    string name;
+    int totalPumps = 0;
+    int workingPumps = 0;
+    double maxCapacity = 0;
+    int stationClass = 1;
 };
 
+template <typename T>
+T getValidInput(const string& prompt) {
+    T value;
+    while (true) {
+        cout << prompt;
+        cin >> value;
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Error: Enter a valid number.\n";
+        }
+        else {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return value;
+        }
+    }
+}
+
+void createPipe(Pipe& pipe) {
+    cout << "\n=== Add New Pipe ===" << endl;
+    cout << "Enter pipe name: ";
+    getline(cin, pipe.name);
+
+    pipe.length = getValidInput<double>("Enter pipe length (km): ");
+    while (pipe.length <= 0) {
+        cout << "Length must be positive. Try again.\n";
+        pipe.length = getValidInput<double>("Enter pipe length (km): ");
+    }
+
+    pipe.diameter = getValidInput<double>("Enter pipe diameter (mm): ");
+    while (pipe.diameter <= 0) {
+        cout << "Diameter must be positive. Try again.\n";
+        pipe.diameter = getValidInput<double>("Enter pipe diameter (mm): ");
+    }
+
+    pipe.isUnderRepair = false;
+    cout << "Pipe '" << pipe.name << "' added successfully!\n" << endl;
+}
+
+void createStation(OilPumpingStation& station) {
+    cout << "\n=== Add New Oil Pumping Station ===" << endl;
+    cout << "Enter station name: ";
+    getline(cin, station.name);
+
+    station.totalPumps = getValidInput<int>("Enter total number of pumps: ");
+    while (station.totalPumps <= 0) {
+        cout << "Number must be positive. Try again.\n";
+        station.totalPumps = getValidInput<int>("Enter total number of pumps: ");
+    }
+
+    station.workingPumps = getValidInput<int>("Enter working pumps: ");
+    while (station.workingPumps < 0 || station.workingPumps > station.totalPumps) {
+        cout << "Working pumps cannot be negative or exceed total. Try again.\n";
+        station.workingPumps = getValidInput<int>("Enter working pumps: ");
+    }
+
+    station.maxCapacity = getValidInput<double>("Enter maximum capacity (m^3/hour): ");
+    while (station.maxCapacity <= 0) {
+        cout << "Capacity must be positive. Try again.\n";
+        station.maxCapacity = getValidInput<double>("Enter maximum capacity (m³/hour): ");
+    }
+
+    station.stationClass = getValidInput<int>("Enter station class (1-5): ");
+    while (station.stationClass < 1 || station.stationClass > 5) {
+        cout << "Class must be between 1 and 5. Try again.\n";
+        station.stationClass = getValidInput<int>("Enter station class (1-5): ");
+    }
+
+    cout << "Station '" << station.name << "' added successfully!\n" << endl;
+}
+
+void displayAllObjects(const Pipe& pipe, const OilPumpingStation& station) {
+    cout << "\n=== ALL OBJECTS ===" << endl;
+
+    cout << "--- Pipe ---" << endl;
+    if (pipe.name.empty()) {
+        cout << "No pipe created." << endl;
+    }
+    else {
+        cout << "Name: " << pipe.name << endl;
+        cout << "Length: " << pipe.length << " km" << endl;
+        cout << "Diameter: " << pipe.diameter << " mm" << endl;
+        cout << "Under repair: " << (pipe.isUnderRepair ? "Yes" : "No") << endl;
+    }
+
+    cout << "\n--- Oil Pumping Station ---" << endl;
+    if (station.name.empty()) {
+        cout << "No station created." << endl;
+    }
+    else {
+        cout << "Name: " << station.name << endl;
+        cout << "Total pumps: " << station.totalPumps << endl;
+        cout << "Working pumps: " << station.workingPumps << endl;
+        cout << "Max capacity: " << station.maxCapacity << " m³/hour" << endl;
+        cout << "Station class: " << station.stationClass << endl;
+        double efficiency = (station.totalPumps > 0) ?
+            (static_cast<double>(station.workingPumps) / station.totalPumps) * 100 : 0;
+        cout << "Current efficiency: " << efficiency << "%" << endl;
+    }
+    cout << "--------------------------------" << endl;
+}
+
+void editPipe(Pipe& pipe) {
+    if (pipe.name.empty()) {
+        cout << "Error: Create a pipe first." << endl;
+        return;
+    }
+    cout << "\n=== Edit Pipe '" << pipe.name << "' ===" << endl;
+    cout << "Current repair status: " << (pipe.isUnderRepair ? "Under repair" : "Operational") << endl;
+    cout << "1. Start repair" << endl;
+    cout << "2. Finish repair" << endl;
+    cout << "0. Cancel" << endl;
+
+    int choice = getValidInput<int>("Select action: ");
+
+    switch (choice) {
+    case 1:
+        if (!pipe.isUnderRepair) {
+            pipe.isUnderRepair = true;
+            cout << "Repair started." << endl;
+        }
+        else {
+            cout << "Pipe is already under repair." << endl;
+        }
+        break;
+    case 2:
+        if (pipe.isUnderRepair) {
+            pipe.isUnderRepair = false;
+            cout << "Repair finished." << endl;
+        }
+        else {
+            cout << "Pipe is not under repair." << endl;
+        }
+        break;
+    case 0:
+        cout << "Canceled." << endl;
+        break;
+    default:
+        cout << "Invalid choice." << endl;
+    }
+}
+
+void editStation(OilPumpingStation& station) {
+    if (station.name.empty()) {
+        cout << "Error: Create a station first." << endl;
+        return;
+    }
+    cout << "\n=== Edit Station '" << station.name << "' ===" << endl;
+    cout << "Working pumps: " << station.workingPumps << " of " << station.totalPumps << endl;
+    cout << "1. Start pump" << endl;
+    cout << "2. Stop pump" << endl;
+    cout << "0. Cancel" << endl;
+
+    int choice = getValidInput<int>("Select action: ");
+
+    switch (choice) {
+    case 1:
+        if (station.workingPumps < station.totalPumps) {
+            station.workingPumps++;
+            cout << "Pump started. Now working: " << station.workingPumps << " pumps." << endl;
+        }
+        else {
+            cout << "Error: All pumps are already working." << endl;
+        }
+        break;
+    case 2:
+        if (station.workingPumps > 0) {
+            station.workingPumps--;
+            cout << "Pump stopped. Now working: " << station.workingPumps << " pumps." << endl;
+        }
+        else {
+            cout << "Error: No working pumps to stop." << endl;
+        }
+        break;
+    case 0:
+        cout << "Canceled." << endl;
+        break;
+    default:
+        cout << "Invalid choice." << endl;
+    }
+}
+
+void saveToFile(const Pipe& pipe, const OilPumpingStation& station, const string& filename = "pipeline_data.txt") {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "Error: Cannot open file for writing." << endl;
+        return;
+    }
+
+    if (!pipe.name.empty()) {
+        file << "PIPE" << endl;
+        file << pipe.name << endl;
+        file << pipe.length << endl;
+        file << pipe.diameter << endl;
+        file << pipe.isUnderRepair << endl;
+    }
+
+    if (!station.name.empty()) {
+        file << "STATION" << endl;
+        file << station.name << endl;
+        file << station.totalPumps << endl;
+        file << station.workingPumps << endl;
+        file << station.maxCapacity << endl;
+        file << station.stationClass << endl;
+    }
+
+    file.close();
+    cout << "Data saved to file '" << filename << "'." << endl;
+}
+
+void loadFromFile(Pipe& pipe, OilPumpingStation& station, const string& filename = "pipeline_data.txt") {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "Error: Cannot open file for reading." << endl;
+        return;
+    }
+
+    string line;
+    pipe.name = "";
+    station.name = "";
+
+    while (getline(file, line)) {
+        if (line == "PIPE") {
+            getline(file, pipe.name);
+            file >> pipe.length >> pipe.diameter >> pipe.isUnderRepair;
+            file.ignore();
+        }
+        else if (line == "STATION") {
+            getline(file, station.name);
+            file >> station.totalPumps >> station.workingPumps >> station.maxCapacity >> station.stationClass;
+            file.ignore();
+        }
+    }
+
+    file.close();
+    cout << "Data loaded from file '" << filename << "'." << endl;
+}
+
 void displayMenu() {
-    cout << "\n=== MENU ===" << endl;     // Заголовок меню
-    cout << "1. Add pipe" << endl;        // Пункт 1 - добавить трубу
-    cout << "2. Add oil pumping station" << endl; // Пункт 2 - добавить станцию
-    cout << "3. View all objects" << endl;// Пункт 3 - просмотр
-    cout << "4. Edit pipe" << endl;       // Пункт 4 - редактировать трубу
-    cout << "5. Edit station" << endl;    // Пункт 5 - редактировать станцию
-    cout << "6. Save" << endl;            // Пункт 6 - сохранить в файл
-    cout << "7. Load" << endl;            // Пункт 7 - загрузить из файла
-    cout << "0. Exit" << endl;            // Пункт 0 - выход
-    cout << "Choose action: ";            // Приглашение к выбору
+    cout << "\n=================================" << endl;
+    cout << "    MENU" << endl;
+    cout << "=================================" << endl;
+    cout << "1. Add pipe" << endl;
+    cout << "2. Add pumping station" << endl;
+    cout << "3. View all objects" << endl;
+    cout << "4. Edit pipe repair status" << endl;
+    cout << "5. Manage station pumps" << endl;
+    cout << "6. Save data to file" << endl;
+    cout << "7. Load data from file" << endl;
+    cout << "0. Exit" << endl;
+    cout << "=================================" << endl;
+    cout << "Enter command number: ";
+}
+
+void processCommand(int command, Pipe& pipe, OilPumpingStation& station) {
+    switch (command) {
+    case 1:
+        createPipe(pipe);
+        break;
+    case 2:
+        createStation(station);
+        break;
+    case 3:
+        displayAllObjects(pipe, station);
+        break;
+    case 4:
+        editPipe(pipe);
+        break;
+    case 5:
+        editStation(station);
+        break;
+    case 6:
+        saveToFile(pipe, station);
+        break;
+    case 7:
+        loadFromFile(pipe, station);
+        break;
+    case 0:
+        cout << "Exiting program. Goodbye!" << endl;
+        exit(0);
+    default:
+        cout << "Command not recognized. Please select from menu." << endl;
+    }
 }
 
 int main() {
-    Pipe pipe;                     // Создание объекта трубы
-    OilPumpingStation station;    // Создание объекта станции
-    bool pipeExists = false;       // Флаг: была ли добавлена труба
-    bool stationExists = false;    // Флаг: была ли добавлена станция
+    Pipe myPipe;
+    OilPumpingStation myStation;
 
-    int choice;                   // Переменная для выбора пункта меню
-    do {                         // Начало цикла do-while
-        displayMenu();           // Вывод меню
+    while (true) {
+        displayMenu();
+        int command = getValidInput<int>("");
+        processCommand(command, myPipe, myStation);
+    }
 
-        // Проверка корректности ввода номера пункта
-        while (!(cin >> choice)) {
-            cout << "Error! Enter number: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-
-        // Обработка выбора пользователя
-        switch (choice) {
-        case 1: // Добавить трубу
-            pipe.readFromConsole();
-            pipeExists = true;        // Установка флага
-            cout << "Pipe added successfully!" << endl;
-            break;
-
-        case 2: // Добавить станцию
-            station.readFromConsole();
-            stationExists = true;     // Установка флага
-            cout << "Oil pumping station added successfully!" << endl;
-            break;
-
-        case 3: // Просмотр всех объектов
-            if (pipeExists) {
-                pipe.display();       // Вывод трубы если она существует
-            }
-            else {
-                cout << "Pipe not added" << endl;
-            }
-
-            if (stationExists) {
-                station.display();    // Вывод станции если она существует
-            }
-            else {
-                cout << "Station not added" << endl;
-            }
-            break;
-
-        case 4: // Редактировать трубу
-            if (pipeExists) {
-                pipe.toggleRepair();  // Изменение статуса ремонта
-            }
-            else {
-                cout << "Add pipe first!" << endl; // Ошибка если трубы нет
-            }
-            break;
-
-        case 5: // Редактировать станцию
-            if (stationExists) {
-                station.managePump(); // Управление насосами
-            }
-            else {
-                cout << "Add station first!" << endl;
-            }
-            break;
-
-        case 6: // Сохранение в файл
-        {
-            ofstream file("data.txt"); // Создание файла для записи
-            if (file.is_open()) {      // Проверка открытия файла
-                if (pipeExists) {
-                    pipe.saveToFile(file); // Сохранение трубы
-                }
-                if (stationExists) {
-                    station.saveToFile(file); // Сохранение станции
-                }
-                file.close();          // Закрытие файла
-                cout << "Data saved to data.txt" << endl;
-            }
-            else {
-                cout << "Error opening file for writing!" << endl;
-            }
-        }
-        break;
-
-        case 7: // Загрузка из файла
-        {
-            ifstream file("data.txt"); // Открытие файла для чтения
-            if (file.is_open()) {
-                string type;           // Для хранения метки "PIPE" или "STATION"
-                while (file >> type) { // Чтение до конца файла
-                    if (type == "PIPE") {
-                        pipe.loadFromFile(file);
-                        pipeExists = true;    // Установка флага
-                    }
-                    else if (type == "STATION") {
-                        station.loadFromFile(file);
-                        stationExists = true; // Установка флага
-                    }
-                }
-                file.close();
-                cout << "Data loaded from data.txt" << endl;
-            }
-            else {
-                cout << "Error opening file for reading!" << endl;
-            }
-        }
-        break;
-
-        case 0: // Выход из программы
-            cout << "Exiting program..." << endl;
-            break;
-
-        default: // Неверный выбор
-            cout << "Invalid choice! Try again." << endl;
-        }
-
-    } while (choice != 0);  // Цикл продолжается пока choice не равен 0
-
-    return 0;  // Завершение программы
+    return 0;
 }
