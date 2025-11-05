@@ -1,319 +1,299 @@
 ﻿#include <iostream>
 #include <string>
 #include <limits>
-#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include "Manager.h"
 
-using namespace std;
+// Вспомогательные функции
+static void ignoreLine() {
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
 
-struct Pipe {
-    string name;
-    double length = 0;
-    double diameter = 0;
-    bool UnderRepair = false;
-};
+static std::string inputLine(const std::string& prompt) {
+    std::string s;
+    std::cout << prompt;
+    std::getline(std::cin, s);
+    return s;
+}
 
-struct OilPumpingStation {
-    string name;
-    int totalPumps = 0;
-    int workingPumps = 0;
-    double maxCapacity = 0;
-    int stationClass = 0;
-};
-
-template <typename T>
-T getValidInput(const string& prompt) {
-    T value;
+static int inputInt(const std::string& prompt) {
     while (true) {
-        cout << prompt;
-        cin >> value;
-        if (cin.fail()) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Error: Enter a valid number.\n";
+        std::cout << prompt;
+        int v;
+        if (std::cin >> v) {
+            ignoreLine();
+            return v;
         }
         else {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return value;
+            std::cout << "Invalid input. Please try again.\n";
+            std::cin.clear();
+            ignoreLine();
         }
     }
 }
 
-void createPipe(Pipe& pipe) {
-    cout << "\n=== Add New Pipe ===" << endl;
-    cout << "Enter pipe name: ";
-    getline(cin, pipe.name);
-
-    pipe.length = getValidInput<double>("Enter pipe length (km): ");
-    while (pipe.length <= 0) {
-        cout << "Length must be positive. Try again.\n";
-        pipe.length = getValidInput<double>("Enter pipe length (km): ");
-    }
-
-    pipe.diameter = getValidInput<double>("Enter pipe diameter (mm): ");
-    while (pipe.diameter <= 0) {
-        cout << "Diameter must be positive. Try again.\n";
-        pipe.diameter = getValidInput<double>("Enter pipe diameter (mm): ");
-    }
-
-    pipe.UnderRepair = false;
-    cout << "Pipe '" << pipe.name << "' added successfully!\n" << endl;
-}
-
-void createStation(OilPumpingStation& station) {
-    cout << "\n=== Add New Oil Pumping Station ===" << endl;
-    cout << "Enter station name: ";
-    getline(cin, station.name);
-
-    station.totalPumps = getValidInput<int>("Enter total number of pumps: ");
-    while (station.totalPumps <= 0) {
-        cout << "Number must be positive. Try again.\n";
-        station.totalPumps = getValidInput<int>("Enter total number of pumps: ");
-    }
-
-    station.workingPumps = getValidInput<int>("Enter working pumps: ");
-    while (station.workingPumps < 0 || station.workingPumps > station.totalPumps) {
-        cout << "Working pumps cannot be negative or exceed total. Try again.\n";
-        station.workingPumps = getValidInput<int>("Enter working pumps: ");
-    }
-
-    station.maxCapacity = getValidInput<double>("Enter maximum capacity (m^3/hour): ");
-    while (station.maxCapacity <= 0) {
-        cout << "Capacity must be positive. Try again.\n";
-        station.maxCapacity = getValidInput<double>("Enter maximum capacity (m³/hour): ");
-    }
-
-    station.stationClass = getValidInput<int>("Enter station class (1-5): ");
-    while (station.stationClass < 1 || station.stationClass > 5) {
-        cout << "Class must be between 1 and 5. Try again.\n";
-        station.stationClass = getValidInput<int>("Enter station class (1-5): ");
-    }
-
-    cout << "Station '" << station.name << "' added successfully!\n" << endl;
-}
-
-void displayAllObjects(const Pipe& pipe, const OilPumpingStation& station) {
-    cout << "\n=== ALL OBJECTS ===" << endl;
-
-    cout << "--- Pipe ---" << endl;
-    if (pipe.name.empty()) {
-        cout << "No pipe created." << endl;
-    }
-    else {
-        cout << "Name: " << pipe.name << endl;
-        cout << "Length: " << pipe.length << " km" << endl;
-        cout << "Diameter: " << pipe.diameter << " mm" << endl;
-        cout << "Under repair: " << (pipe.UnderRepair ? "Yes" : "No") << endl;
-    }
-
-    cout << "\n--- Oil Pumping Station ---" << endl;
-    if (station.name.empty()) {
-        cout << "No station created." << endl;
-    }
-    else {
-        cout << "Name: " << station.name << endl;
-        cout << "Total pumps: " << station.totalPumps << endl;
-        cout << "Working pumps: " << station.workingPumps << endl;
-        cout << "Max capacity: " << station.maxCapacity << " m³/hour" << endl;
-        cout << "Station class: " << station.stationClass << endl;
-        double efficiency = (station.totalPumps > 0) ?
-            (static_cast<double>(station.workingPumps) / station.totalPumps) * 100 : 0;
-        cout << "Current efficiency: " << efficiency << "%" << endl;
-    }
-    cout << "--------------------------------" << endl;
-}
-
-void editPipe(Pipe& pipe) {
-    if (pipe.name.empty()) {
-        cout << "Error: Create a pipe first." << endl;
-        return;
-    }
-    cout << "\n=== Edit Pipe '" << pipe.name << "' ===" << endl;
-    cout << "Current repair status: " << (pipe.UnderRepair ? "Under repair" : "Operational") << endl;
-    cout << "1. Start repair" << endl;
-    cout << "2. Finish repair" << endl;
-    cout << "0. Cancel" << endl;
-
-    int choice = getValidInput<int>("Select action: ");
-
-    switch (choice) {
-    case 1:
-        if (!pipe.UnderRepair) {
-            pipe.UnderRepair = true;
-            cout << "Repair started." << endl;
-        }
+static double inputDouble(const std::string& prompt) {
+    while (true) {
+        std::cout << prompt;
+        double v;
+        if (std::cin >> v) { ignoreLine(); return v; }
         else {
-            cout << "Pipe is already under repair." << endl;
+            std::cout << "Invalid input. Please try again.\n";
+            std::cin.clear();
+            ignoreLine();
         }
-        break;
-    case 2:
-        if (pipe.UnderRepair) {
-            pipe.UnderRepair = false;
-            cout << "Repair finished." << endl;
-        }
-        else {
-            cout << "Pipe is not under repair." << endl;
-        }
-        break;
-    case 0:
-        cout << "Canceled." << endl;
-        break;
-    default:
-        cout << "Invalid choice." << endl;
     }
 }
 
-void editStation(OilPumpingStation& station) {
-    if (station.name.empty()) {
-        cout << "Error: Create a station first." << endl;
-        return;
-    }
-    cout << "\n=== Edit Station '" << station.name << "' ===" << endl;
-    cout << "Working pumps: " << station.workingPumps << " of " << station.totalPumps << endl;
-    cout << "1. Start pump" << endl;
-    cout << "2. Stop pump" << endl;
-    cout << "0. Cancel" << endl;
-
-    int choice = getValidInput<int>("Select action: ");
-
-    switch (choice) {
-    case 1:
-        if (station.workingPumps < station.totalPumps) {
-            station.workingPumps++;
-            cout << "Pump started. Now working: " << station.workingPumps << " pumps." << endl;
-        }
-        else {
-            cout << "Error: All pumps are already working." << endl;
-        }
-        break;
-    case 2:
-        if (station.workingPumps > 0) {
-            station.workingPumps--;
-            cout << "Pump stopped. Now working: " << station.workingPumps << " pumps." << endl;
-        }
-        else {
-            cout << "Error: No working pumps to stop." << endl;
-        }
-        break;
-    case 0:
-        cout << "Canceled." << endl;
-        break;
-    default:
-        cout << "Invalid choice." << endl;
-    }
-}
-
-void saveToFile(const Pipe& pipe, const OilPumpingStation& station, const string& filename = "pipeline_data.txt") {
-    ofstream file(filename);
-    if (!file.is_open()) {
-        cout << "Error: Cannot open file for writing." << endl;
-        return;
-    }
-
-    if (!pipe.name.empty()) {
-        file << "PIPE" << endl;
-        file << pipe.name << endl;
-        file << pipe.length << endl;
-        file << pipe.diameter << endl;
-        file << pipe.UnderRepair << endl;
-    }
-
-    if (!station.name.empty()) {
-        file << "STATION" << endl;
-        file << station.name << endl;
-        file << station.totalPumps << endl;
-        file << station.workingPumps << endl;
-        file << station.maxCapacity << endl;
-        file << station.stationClass << endl;
-    }
-
-    file.close();
-    cout << "Data saved to file '" << filename << "'." << endl;
-}
-
-void loadFromFile(Pipe& pipe, OilPumpingStation& station, const string& filename = "pipeline_data.txt") {
-    ifstream file(filename);
-    if (!file.is_open()) {
-        cout << "Error: Cannot open file for reading." << endl;
-        return;
-    }
-
-    string line;
-    pipe.name = "";
-    station.name = "";
-
-    while (getline(file, line)) {
-        if (line == "PIPE") {
-            getline(file, pipe.name);
-            file >> pipe.length >> pipe.diameter >> pipe.UnderRepair;
-            file.ignore();
-        }
-        else if (line == "STATION") {
-            getline(file, station.name);
-            file >> station.totalPumps >> station.workingPumps >> station.maxCapacity >> station.stationClass;
-            file.ignore();
-        }
-    }
-
-    file.close();
-    cout << "Data loaded from file '" << filename << "'." << endl;
-}
-
-void displayMenu() {
-    cout << "\n=================================" << endl;
-    cout << "    MENU" << endl;
-    cout << "=================================" << endl;
-    cout << "1. Add pipe" << endl;
-    cout << "2. Add pumping station" << endl;
-    cout << "3. View all objects" << endl;
-    cout << "4. Edit pipe repair status" << endl;
-    cout << "5. Manage station pumps" << endl;
-    cout << "6. Save data to file" << endl;
-    cout << "7. Load data from file" << endl;
-    cout << "0. Exit" << endl;
-    cout << "=================================" << endl;
-    cout << "Enter command number: ";
-}
-
-void processCommand(int command, Pipe& pipe, OilPumpingStation& station) {
-    switch (command) {
-    case 1:
-        createPipe(pipe);
-        break;
-    case 2:
-        createStation(station);
-        break;
-    case 3:
-        displayAllObjects(pipe, station);
-        break;
-    case 4:
-        editPipe(pipe);
-        break;
-    case 5:
-        editStation(station);
-        break;
-    case 6:
-        saveToFile(pipe, station);
-        break;
-    case 7:
-        loadFromFile(pipe, station);
-        break;
-    case 0:
-        cout << "Exiting program. Goodbye!" << endl;
-        exit(0);
-    default:
-        cout << "Command not recognized. Please select from menu." << endl;
-    }
+void addSampleData(Manager& m) {
+    m.addPipe("MainLine-1", 500.0, false);
+    m.addPipe("Feeder-A", 250.0, true);
+    m.addPipe("Bypass-02", 300.0, false);
+    m.addStation("CS-North", 10, 8, "A");
+    m.addStation("CS-South", 6, 2, "B");
+    m.addStation("CS-East", 12, 12, "A+");
 }
 
 int main() {
-    Pipe myPipe;
-    OilPumpingStation myStation;
+    Manager manager;
+    std::cout << "=== Pipe and Compressor Station Manager ===\n";
+    std::string logf = inputLine("Enter log filename (or press Enter for actions.log): ");
+    if (!logf.empty()) manager.setLogFilename(logf);
 
-    while (true) {
-        displayMenu();
-        int command = getValidInput<int>("");
-        processCommand(command, myPipe, myStation);
+    bool running = true;
+    while (running) {
+        std::cout << "\nMain Menu:\n";
+        std::cout << "1) Add Pipe\n";
+        std::cout << "2) Edit Pipe\n";
+        std::cout << "3) Delete Pipe\n";
+        std::cout << "4) Search and Batch Edit Pipes\n";
+        std::cout << "5) List All Pipes\n";
+        std::cout << "6) Add Compressor Station\n";
+        std::cout << "7) Edit Compressor Station\n";
+        std::cout << "8) Delete Compressor Station\n";
+        std::cout << "9) Search Compressor Stations\n";
+        std::cout << "10) List All Compressor Stations\n";
+        std::cout << "11) Save to File\n";
+        std::cout << "12) Load from File\n";
+        std::cout << "13) Add Sample Data\n";
+        std::cout << "0) Exit\n";
+        int choice = inputInt("Choose an option: ");
+        switch (choice) {
+        case 1: {
+            std::string name = inputLine("Pipe name: ");
+            double diam = inputDouble("Diameter (number): ");
+            std::string rep = inputLine("In repair? (y/n): ");
+            bool inrep = (rep.size() > 0 && (rep[0] == 'y' || rep[0] == 'Y'));
+            uint64_t id = manager.addPipe(name, diam, inrep);
+            std::cout << "Pipe added with ID=" << id << "\n";
+            break;
+        }
+        case 2: {
+            uint64_t id = (uint64_t)inputInt("Pipe ID to edit: ");
+            Pipe* p = manager.findPipeById(id);
+            if (!p) { std::cout << "Pipe with this ID not found\n"; break; }
+            std::cout << "Current data:\n" << *p << "\n";
+            std::string newName = inputLine("New name (Enter = no change): ");
+            std::string dstr = inputLine("New diameter (Enter = no change): ");
+            if (!newName.empty()) p->setName(newName);
+            if (!dstr.empty()) {
+                try { double d = std::stod(dstr); p->setDiameter(d); }
+                catch (...) { std::cout << "Diameter not changed: invalid input\n"; }
+            }
+            std::string rep = inputLine("In repair? (y/n/Enter = no change): ");
+            if (!rep.empty()) {
+                bool inrep = (rep[0] == 'y' || rep[0] == 'Y');
+                p->setInRepair(inrep);
+            }
+            manager.writeLog("Edited pipe id=" + std::to_string(p->getId()));
+            std::cout << "Edited.\n";
+            break;
+        }
+        case 3: {
+            uint64_t id = (uint64_t)inputInt("Pipe ID to delete: ");
+            if (manager.removePipeById(id)) std::cout << "Deleted.\n"; else std::cout << "Not found.\n";
+            break;
+        }
+        case 4: {
+            std::cout << "Search pipes for batch editing:\n";
+            std::cout << "1) by name\n";
+            std::cout << "2) by 'in repair' flag\n";
+            std::cout << "3) enter IDs manually\n";
+            int m = inputInt("Choose search method: ");
+
+            std::vector<uint64_t> ids;
+
+            if (m == 1) {
+                std::string q = inputLine("Enter substring of name: ");
+                auto res = manager.findPipesByName(q);
+                std::cout << "Found " << res.size() << " pipes:\n";
+                for (auto p : res) {
+                    std::cout << *p << "\n";
+                    ids.push_back(p->getId());
+                }
+            }
+            else if (m == 2) {
+                std::string rep = inputLine("Search pipes in repair? (y = yes, n = no): ");
+                bool flag = (rep.size() > 0 && (rep[0] == 'y' || rep[0] == 'Y'));
+                auto res = manager.findPipesByRepairFlag(flag);
+                std::cout << "Found " << res.size() << " pipes:\n";
+                for (auto p : res) {
+                    std::cout << *p << "\n";
+                    ids.push_back(p->getId());
+                }
+            }
+            else if (m == 3) {
+                std::string line = inputLine("Enter IDs separated by space: ");
+                std::istringstream iss(line);
+                uint64_t v;
+                while (iss >> v) ids.push_back(v);
+                std::cout << "Selected " << ids.size() << " pipes for editing.\n";
+            }
+            else {
+                std::cout << "Invalid choice.\n";
+                break;
+            }
+
+            if (ids.empty()) {
+                std::cout << "No pipes selected for editing.\n";
+                break;
+            }
+
+            // Подтверждение выбора для пакетного редактирования
+            std::cout << "You selected " << ids.size() << " pipes for batch editing.\n";
+            std::cout << "Do you want to edit all of them? (y/n): ";
+            std::string confirm;
+            std::getline(std::cin, confirm);
+
+            if (!confirm.empty() && (confirm[0] == 'n' || confirm[0] == 'N')) {
+                // Пользователь хочет выбрать подмножество
+                std::vector<uint64_t> selectedIds;
+                std::cout << "Enter the IDs you want to edit (separated by space): ";
+                std::string idLine;
+                std::getline(std::cin, idLine);
+                std::istringstream idStream(idLine);
+                uint64_t selectedId;
+                while (idStream >> selectedId) {
+                    if (std::find(ids.begin(), ids.end(), selectedId) != ids.end()) {
+                        selectedIds.push_back(selectedId);
+                    }
+                    else {
+                        std::cout << "ID " << selectedId << " is not in the found list.\n";
+                    }
+                }
+                ids = selectedIds;
+            }
+
+            if (ids.empty()) {
+                std::cout << "No pipes selected for editing.\n";
+                break;
+            }
+
+            // массовое редактирование
+            std::cout << "Batch editing " << ids.size() << " pipes.\n";
+            std::string newName = inputLine("New name for selected (Enter = no change): ");
+            std::string dstr = inputLine("New diameter for selected (Enter = no change): ");
+            double newDiameter = -1.0;
+            if (!dstr.empty()) {
+                try { newDiameter = std::stod(dstr); }
+                catch (...) { newDiameter = -1.0; }
+            }
+            std::cout << "Change 'in repair' flag? (0 = no change, 1 = set true, 2 = set false)\n";
+            int rf = inputInt("Choice: ");
+            int changeFlag = -1;
+            if (rf == 1) changeFlag = 1;
+            else if (rf == 2) changeFlag = 0;
+            else changeFlag = -1;
+
+            manager.batchEditPipes(ids, newName, newDiameter, changeFlag);
+            std::cout << "Batch editing completed for " << ids.size() << " pipes.\n";
+            break;
+        }
+        case 5: {
+            std::cout << "Total pipes: " << manager.getPipeCount() << "\n";
+            for (const auto& pair : manager.getPipes()) std::cout << pair.second << "\n";
+            break;
+        }
+        case 6: {
+            std::string name = inputLine("Compressor Station name: ");
+            int total = inputInt("Total workshops: ");
+            int working = inputInt("Working workshops: ");
+            std::string cls = inputLine("Classification: ");
+            uint64_t id = manager.addStation(name, total, working, cls);
+            std::cout << "Compressor Station added with ID=" << id << "\n";
+            break;
+        }
+        case 7: {
+            uint64_t id = (uint64_t)inputInt("Compressor Station ID to edit: ");
+            CompressorStation* s = manager.findStationById(id);
+            if (!s) { std::cout << "Not found.\n"; break; }
+            std::cout << *s << "\n";
+            std::string n = inputLine("New name (Enter = no change): ");
+            std::string tot = inputLine("New total (Enter = no change): ");
+            std::string work = inputLine("New working (Enter = no change): ");
+            std::string cls = inputLine("New classification (Enter = no change): ");
+            if (!n.empty()) s->setName(n);
+            if (!tot.empty()) { try { s->setTotalWorkshops(std::stoi(tot)); } catch (...) {} }
+            if (!work.empty()) { try { s->setWorkingWorkshops(std::stoi(work)); } catch (...) {} }
+            if (!cls.empty()) s->setClassification(cls);
+            manager.writeLog("Edited station id=" + std::to_string(s->getId()));
+            std::cout << "Edited.\n";
+            break;
+        }
+        case 8: {
+            uint64_t id = (uint64_t)inputInt("Compressor Station ID to delete: ");
+            if (manager.removeStationById(id)) std::cout << "Deleted.\n"; else std::cout << "Not found.\n";
+            break;
+        }
+        case 9: {
+            std::cout << "Search Compressor Stations: 1) by name  2) by idle workshops percentage (>=)\n";
+            int m = inputInt("Choice: ");
+            if (m == 1) {
+                std::string q = inputLine("Name substring: ");
+                auto res = manager.findStationsByName(q);
+                std::cout << "Found " << res.size() << " stations:\n";
+                for (auto s : res) std::cout << *s << "\n";
+            }
+            else if (m == 2) {
+                double perc = inputDouble("Min idle percent (e.g., 50.0): ");
+                auto res = manager.findStationsByIdlePercent(perc);
+                std::cout << "Found " << res.size() << " stations:\n";
+                for (auto s : res) std::cout << *s << "\n";
+            }
+            else std::cout << "Invalid choice.\n";
+            break;
+        }
+        case 10: {
+            std::cout << "Total stations: " << manager.getStationCount() << "\n";
+            for (const auto& pair : manager.getStations()) std::cout << pair.second << "\n";
+            break;
+        }
+        case 11: {
+            std::string fname = inputLine("Enter filename to save: ");
+            if (manager.saveToFile(fname)) std::cout << "Saved.\n"; else std::cout << "Error saving.\n";
+            break;
+        }
+        case 12: {
+            std::string fname = inputLine("Enter filename to load: ");
+            if (manager.loadFromFile(fname)) std::cout << "Loaded.\n"; else std::cout << "Error loading.\n";
+            break;
+        }
+        case 13: {
+            addSampleData(manager);
+            std::cout << "Sample data added.\n";
+            break;
+        }
+        case 0: {
+            running = false;
+            std::cout << "Goodbye!\n";
+            break;
+        }
+        default:
+            std::cout << "Invalid option.\n";
+            break;
+        }
     }
-
     return 0;
 }
