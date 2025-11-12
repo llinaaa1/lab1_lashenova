@@ -8,10 +8,13 @@
 #include <unordered_map>
 #include <functional>
 
+// Класс-менеджер, управляющий коллекциями труб и кс
 class Manager {
 private:
-    std::unordered_map<uint64_t, Pipe> pipes;
-    std::unordered_map<uint64_t, CompressorStation> stations;
+    std::unordered_map<uint64_t, Pipe> pipes; //Хранилище труб
+    std::unordered_map<uint64_t, CompressorStation> stations; //Хранилище станций
+    
+    // Счетчики для генерации уникальных id
     uint64_t next_pipe_id;
     uint64_t next_station_id;
     std::string log_filename;
@@ -25,13 +28,15 @@ public:
     Manager();
     Manager(const std::string& logFile);
 
+    //Методы управления логами
     void setLogFilename(const std::string& filename);
     void writeLog(const std::string& msg);
 
+    //Генераторы уникальных id
     uint64_t makePipeId();
     uint64_t makeStationId();
 
-    // Pipe methods
+    // Методы для работы с трубами
     uint64_t addPipe(const std::string& name, double diameter, bool in_repair);
     uint64_t addPipe(const Pipe& pipe);
     bool removePipeById(uint64_t id);
@@ -41,7 +46,7 @@ public:
     const std::unordered_map<uint64_t, Pipe>& getPipes() const;
     size_t getPipeCount() const;
 
-    // Station methods
+    // Методы для работы со станциями
     uint64_t addStation(const std::string& name, int total, int working, const std::string& classification);
     uint64_t addStation(const CompressorStation& station);
     bool removeStationById(uint64_t id);
@@ -51,11 +56,11 @@ public:
     const std::unordered_map<uint64_t, CompressorStation>& getStations() const;
     size_t getStationCount() const;
 
-    // File operations
+    // Операции с файлами
     bool saveToFile(const std::string& filename);
     bool loadFromFile(const std::string& filename);
 
-    // Batch editing
+    // Массовое редактирование труб
     void batchEditPipes(const std::vector<uint64_t>& ids, const std::string& newName, double newDiameter, int changeRepairFlag);
 };
 

@@ -7,9 +7,13 @@
 #include <sstream>
 #include <algorithm>
 
+// Инициализирует начальные значения
 Manager::Manager() : next_pipe_id(1), next_station_id(1), log_filename("actions.log") {}
+
+// Конструктор с указанием файла лога
 Manager::Manager(const std::string& logFile) : next_pipe_id(1), next_station_id(1), log_filename(logFile) {}
 
+// Устанавливает имя файла для логов и логирует это действие
 void Manager::setLogFilename(const std::string& filename) {
     log_filename = filename;
     logAction("Log filename changed to: " + filename);
@@ -18,6 +22,7 @@ void Manager::setLogFilename(const std::string& filename) {
 void Manager::writeLog(const std::string& msg) {
     logAction(msg);
 }
+
 
 uint64_t Manager::makePipeId() {
     return next_pipe_id++;
@@ -57,7 +62,7 @@ std::vector<T*> Manager::findEntities(const std::unordered_map<uint64_t, T>& con
 template std::vector<Pipe*> Manager::findEntities<Pipe, std::function<bool(const Pipe&)>>(const std::unordered_map<uint64_t, Pipe>&, std::function<bool(const Pipe&)>);
 template std::vector<CompressorStation*> Manager::findEntities<CompressorStation, std::function<bool(const CompressorStation&)>>(const std::unordered_map<uint64_t, CompressorStation>&, std::function<bool(const CompressorStation&)>);
 
-// Pipe methods
+// Методы для труб
 uint64_t Manager::addPipe(const std::string& name, double diameter, bool in_repair) {
     uint64_t id = makePipeId();
     pipes.emplace(id, Pipe(id, name, diameter, in_repair));
@@ -104,7 +109,7 @@ std::vector<Pipe*> Manager::findPipesByRepairFlag(bool in_repair) {
 const std::unordered_map<uint64_t, Pipe>& Manager::getPipes() const { return pipes; }
 size_t Manager::getPipeCount() const { return pipes.size(); }
 
-// Station methods
+// Методы для станций
 uint64_t Manager::addStation(const std::string& name, int total, int working, const std::string& classification) {
     uint64_t id = makeStationId();
     stations.emplace(id, CompressorStation(id, name, total, working, classification));
@@ -153,7 +158,7 @@ std::vector<CompressorStation*> Manager::findStationsByIdlePercent(double minIdl
 const std::unordered_map<uint64_t, CompressorStation>& Manager::getStations() const { return stations; }
 size_t Manager::getStationCount() const { return stations.size(); }
 
-// File operations
+// Операции с файлами
 bool Manager::saveToFile(const std::string& filename) {
     std::ofstream os(filename);
     if (!os) {
@@ -218,20 +223,24 @@ bool Manager::loadFromFile(const std::string& filename) {
     // Корректировка next_id
     uint64_t max_pipe_id = 0;
     uint64_t max_station_id = 0;
+
+    // Находим максимальные id
     for (const auto& p : pipes) if (p.first > max_pipe_id) max_pipe_id = p.first;
     for (const auto& s : stations) if (s.first > max_station_id) max_station_id = s.first;
+    
     next_pipe_id = std::max(loaded_next_pipe_id, max_pipe_id + 1);
     next_station_id = std::max(loaded_next_station_id, max_station_id + 1);
 
     logAction("Loaded from file: " + filename + " pipes=" + std::to_string(pipes.size()) + " stations=" + std::to_string(stations.size()));
     return true;
 }
-
+// Массовое редактирование труб
 void Manager::batchEditPipes(const std::vector<uint64_t>& ids, const std::string& newName, double newDiameter, int changeRepairFlag) {
     std::ostringstream oss;
     oss << "Batch edit pipes count=" << ids.size() << " newName=\"" << newName << "\" newDiameter=" << newDiameter << " changeRepair=" << changeRepairFlag;
     logAction(oss.str());
 
+    // Проходим по всем id труб для редактирования
     for (uint64_t id : ids) {
         Pipe* p = findPipeById(id);
         if (!p) {
@@ -242,6 +251,7 @@ void Manager::batchEditPipes(const std::vector<uint64_t>& ids, const std::string
         if (newDiameter > 0.0) p->setDiameter(newDiameter);
         if (changeRepairFlag == 0) p->setInRepair(false);
         if (changeRepairFlag == 1) p->setInRepair(true);
+
         logAction("Batch edited pipe id=" + std::to_string(id));
     }
 }

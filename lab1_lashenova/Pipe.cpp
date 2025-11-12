@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
-#include <limits> // Добавлен заголовок для numeric_limits
+#include <limits> // для numeric_limits
 
 // конструктор по умолчанию - инициализирует все поля нулевыми/пустыми значениями
 Pipe::Pipe() : id(0), name(""), diameter(0.0), in_repair(false) {}
@@ -11,18 +11,18 @@ Pipe::Pipe(uint64_t id_, const std::string& name_, double diameter_, bool in_rep
     : id(id_), name(name_), diameter(diameter_), in_repair(in_repair_) {
 }
 
-// методы для чтения полей
+// Методы чтения полей
 uint64_t Pipe::getId() const { return id; }
 std::string Pipe::getName() const { return name; }
 double Pipe::getDiameter() const { return diameter; }
 bool Pipe::isInRepair() const { return in_repair; }
 
-// методы для изменения полей
+// Методы изменения
 void Pipe::setName(const std::string& n) { name = n; }
 void Pipe::setDiameter(double d) { diameter = d; }
 void Pipe::setInRepair(bool r) { in_repair = r; }
 
-//преобразует объект в строку для сохранения в файл
+//Преобразует объект в строку для сохранения в файл
 std::string Pipe::serialize() const {
     std::ostringstream os;
     // id|name|diameter|in_repair
@@ -30,7 +30,7 @@ std::string Pipe::serialize() const {
     return os.str();
 }
 
-// создает объект из строки
+// Создает объект из строки
 Pipe Pipe::deserialize(const std::string& line) {
     // split by '|'
     std::vector<std::string> parts;
@@ -48,7 +48,7 @@ Pipe Pipe::deserialize(const std::string& line) {
     return Pipe(id, name, diameter, in_repair);
 }
 
-// оператор вывода
+// Оператор вывода
 std::ostream& operator<<(std::ostream& os, const Pipe& p) {
     os << "ID=" << p.id
         << " | Name=\"" << p.name << "\""
@@ -57,7 +57,7 @@ std::ostream& operator<<(std::ostream& os, const Pipe& p) {
     return os;
 }
 
-// оператор ввода
+// Оператор ввода
 std::istream& operator>>(std::istream& is, Pipe& p) {
     std::cout << "Enter pipe name: ";
     std::getline(is, p.name);

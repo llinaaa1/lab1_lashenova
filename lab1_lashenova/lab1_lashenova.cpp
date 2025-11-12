@@ -18,6 +18,7 @@ static std::string inputLine(const std::string& prompt) {
     return s;
 }
 
+// Защищенный ввод целого числа с проверкой
 static int inputInt(const std::string& prompt) {
     while (true) {
         std::cout << prompt;
@@ -33,7 +34,7 @@ static int inputInt(const std::string& prompt) {
         }
     }
 }
-
+// Ввод вещественного числа с проверкой
 static double inputDouble(const std::string& prompt) {
     while (true) {
         std::cout << prompt;
@@ -47,6 +48,8 @@ static double inputDouble(const std::string& prompt) {
     }
 }
 
+
+// Тестовые данные для демонстрации
 void addSampleData(Manager& m) {
     m.addPipe("MainLine-1", 500.0, false);
     m.addPipe("Feeder-A", 250.0, true);
@@ -59,6 +62,7 @@ void addSampleData(Manager& m) {
 int main() {
     Manager manager;
     std::cout << "=== Pipe and Compressor Station Manager ===\n";
+
     std::string logf = inputLine("Enter log filename (or press Enter for actions.log): ");
     if (!logf.empty()) manager.setLogFilename(logf);
 
@@ -79,9 +83,11 @@ int main() {
         std::cout << "12) Load from File\n";
         std::cout << "13) Add Sample Data\n";
         std::cout << "0) Exit\n";
+
         int choice = inputInt("Choose an option: ");
+
         switch (choice) {
-        case 1: {
+        case 1: { // Добавление новой трубы
             std::string name = inputLine("Pipe name: ");
             double diam = inputDouble("Diameter (number): ");
             std::string rep = inputLine("In repair? (y/n): ");
@@ -90,11 +96,12 @@ int main() {
             std::cout << "Pipe added with ID=" << id << "\n";
             break;
         }
-        case 2: {
+        case 2: { // Редактирование существующей 
             uint64_t id = (uint64_t)inputInt("Pipe ID to edit: ");
             Pipe* p = manager.findPipeById(id);
             if (!p) { std::cout << "Pipe with this ID not found\n"; break; }
             std::cout << "Current data:\n" << *p << "\n";
+
             std::string newName = inputLine("New name (Enter = no change): ");
             std::string dstr = inputLine("New diameter (Enter = no change): ");
             if (!newName.empty()) p->setName(newName);
@@ -111,12 +118,12 @@ int main() {
             std::cout << "Edited.\n";
             break;
         }
-        case 3: {
+        case 3: { // Удаление трубы
             uint64_t id = (uint64_t)inputInt("Pipe ID to delete: ");
             if (manager.removePipeById(id)) std::cout << "Deleted.\n"; else std::cout << "Not found.\n";
             break;
         }
-        case 4: {
+        case 4: { // Поиск и пакетное редактирование
             std::cout << "Search pipes for batch editing:\n";
             std::cout << "1) by name\n";
             std::cout << "2) by 'in repair' flag\n";
@@ -125,7 +132,7 @@ int main() {
 
             std::vector<uint64_t> ids;
 
-            if (m == 1) {
+            if (m == 1) { // Поиск по имени
                 std::string q = inputLine("Enter substring of name: ");
                 auto res = manager.findPipesByName(q);
                 std::cout << "Found " << res.size() << " pipes:\n";
@@ -134,7 +141,7 @@ int main() {
                     ids.push_back(p->getId());
                 }
             }
-            else if (m == 2) {
+            else if (m == 2) { // Поиск по статусу ремонта
                 std::string rep = inputLine("Search pipes in repair? (y = yes, n = no): ");
                 bool flag = (rep.size() > 0 && (rep[0] == 'y' || rep[0] == 'Y'));
                 auto res = manager.findPipesByRepairFlag(flag);
@@ -144,7 +151,7 @@ int main() {
                     ids.push_back(p->getId());
                 }
             }
-            else if (m == 3) {
+            else if (m == 3) { // Ручной ввод id
                 std::string line = inputLine("Enter IDs separated by space: ");
                 std::istringstream iss(line);
                 uint64_t v;
@@ -203,20 +210,20 @@ int main() {
             std::cout << "Change 'in repair' flag? (0 = no change, 1 = set true, 2 = set false)\n";
             int rf = inputInt("Choice: ");
             int changeFlag = -1;
-            if (rf == 1) changeFlag = 1;
-            else if (rf == 2) changeFlag = 0;
-            else changeFlag = -1;
+            if (rf == 1) changeFlag = 1; // Установить 'в ремонте'
+            else if (rf == 2) changeFlag = 0; // Установить 'не в ремонте'
+            else changeFlag = -1; // Без изменений 
 
             manager.batchEditPipes(ids, newName, newDiameter, changeFlag);
             std::cout << "Batch editing completed for " << ids.size() << " pipes.\n";
             break;
         }
-        case 5: {
+        case 5: { // Показать все трубы
             std::cout << "Total pipes: " << manager.getPipeCount() << "\n";
             for (const auto& pair : manager.getPipes()) std::cout << pair.second << "\n";
             break;
         }
-        case 6: {
+        case 6: { // Добавление новой станции
             std::string name = inputLine("Compressor Station name: ");
             int total = inputInt("Total workshops: ");
             int working = inputInt("Working workshops: ");
@@ -225,7 +232,7 @@ int main() {
             std::cout << "Compressor Station added with ID=" << id << "\n";
             break;
         }
-        case 7: {
+        case 7: { // Редактирование существующей
             uint64_t id = (uint64_t)inputInt("Compressor Station ID to edit: ");
             CompressorStation* s = manager.findStationById(id);
             if (!s) { std::cout << "Not found.\n"; break; }
@@ -242,21 +249,21 @@ int main() {
             std::cout << "Edited.\n";
             break;
         }
-        case 8: {
+        case 8: { // Удаление станции
             uint64_t id = (uint64_t)inputInt("Compressor Station ID to delete: ");
             if (manager.removeStationById(id)) std::cout << "Deleted.\n"; else std::cout << "Not found.\n";
             break;
         }
-        case 9: {
+        case 9: { // Поиск станций
             std::cout << "Search Compressor Stations: 1) by name  2) by idle workshops percentage (>=)\n";
             int m = inputInt("Choice: ");
-            if (m == 1) {
+            if (m == 1) { // по имени
                 std::string q = inputLine("Name substring: ");
                 auto res = manager.findStationsByName(q);
                 std::cout << "Found " << res.size() << " stations:\n";
                 for (auto s : res) std::cout << *s << "\n";
             }
-            else if (m == 2) {
+            else if (m == 2) { // по проценту простоя
                 double perc = inputDouble("Min idle percent (e.g., 50.0): ");
                 auto res = manager.findStationsByIdlePercent(perc);
                 std::cout << "Found " << res.size() << " stations:\n";
@@ -265,32 +272,32 @@ int main() {
             else std::cout << "Invalid choice.\n";
             break;
         }
-        case 10: {
+        case 10: { // Показать все станции
             std::cout << "Total stations: " << manager.getStationCount() << "\n";
             for (const auto& pair : manager.getStations()) std::cout << pair.second << "\n";
             break;
         }
-        case 11: {
+        case 11: { // Сохранение в файл
             std::string fname = inputLine("Enter filename to save: ");
             if (manager.saveToFile(fname)) std::cout << "Saved.\n"; else std::cout << "Error saving.\n";
             break;
         }
-        case 12: {
+        case 12: { // Загрузка из файла
             std::string fname = inputLine("Enter filename to load: ");
             if (manager.loadFromFile(fname)) std::cout << "Loaded.\n"; else std::cout << "Error loading.\n";
             break;
         }
-        case 13: {
+        case 13: { // Добавление тестовых данных
             addSampleData(manager);
             std::cout << "Sample data added.\n";
             break;
         }
-        case 0: {
+        case 0: { // Выход из программы
             running = false;
             std::cout << "Goodbye!\n";
             break;
         }
-        default:
+        default: // Неверный выбор
             std::cout << "Invalid option.\n";
             break;
         }

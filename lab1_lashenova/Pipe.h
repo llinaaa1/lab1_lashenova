@@ -10,14 +10,14 @@ class Pipe {
 private:
     uint64_t id;
     std::string name;
-    double diameter; // mm or chosen unit
+    double diameter; 
     bool in_repair;
 
 public:
     Pipe();
     Pipe(uint64_t id_, const std::string& name_, double diameter_, bool in_repair_);
 
-    // getters / setters
+    
     uint64_t getId() const;
     std::string getName() const;
     double getDiameter() const;
@@ -27,11 +27,11 @@ public:
     void setDiameter(double d);
     void setInRepair(bool r);
 
-    // serialization to single line (safe, '|' as separator)
+    
     std::string serialize() const;
     static Pipe deserialize(const std::string& line);
 
-    // friend operators for input/output
+    
     friend std::ostream& operator<<(std::ostream& os, const Pipe& p);
     friend std::istream& operator>>(std::istream& is, Pipe& p);
 };
