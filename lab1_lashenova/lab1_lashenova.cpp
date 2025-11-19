@@ -9,7 +9,7 @@
 #include <format>
 #include <fstream>
 
-using namespace chrono;
+using namespace std::chrono;
 using namespace std;
 
 #define INPUT_LINE(in, str) getline(in>>ws, str); \
@@ -63,7 +63,11 @@ void addSampleData(Manager& m) {
 
 int main() {
     redirect_output_wrapper cerr_out(cerr);
-    string time = format("{:%d_%m_%Y %H_%M_%OS}", system_clock::now());
+
+    auto now = chrono::system_clock::now();
+    time_t time_now = chrono::system_clock::to_time_t(now);
+    string time = to_string(time_now);
+
     ofstream logfile("log_" + time);
     if (logfile)
         cerr_out.redirect(logfile);
@@ -211,7 +215,7 @@ int main() {
                 istringstream idStream(idLine);
                 int selectedId;
                 while (idStream >> selectedId) {
-                    if (ids.contains(selectedId)) {
+                    if (ids.count(selectedId)>0) {
                         selectedIds.insert(selectedId);
                     }
                     else {
@@ -226,7 +230,7 @@ int main() {
                 break;
             }
 
-            // массовое редактирование
+            // Массовое редактирование
             cout << "Batch editing " << ids.size() << " pipes.\n";
             cout << "New name for selected (Enter = no change): ";
             string newName;
@@ -247,7 +251,8 @@ int main() {
             else if (rf == 2) changeFlag = 0; // Установить 'не в ремонте'
             else changeFlag = -1; // Без изменений 
 
-            manager.batchEditPipes(ids, newName, newDiameter, changeFlag);
+            vector<int> idVector(ids.begin(), ids.end());
+            manager.batchEditPipes(idVector, newName, newDiameter, changeFlag);
             cout << "Batch editing completed for " << ids.size() << " pipes.\n";
             break;
         }
