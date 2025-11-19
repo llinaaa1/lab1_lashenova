@@ -8,17 +8,17 @@
 
 class Pipe {
 private:
-    uint64_t id;
+    int id;
     std::string name;
     double diameter; 
     bool in_repair;
 
 public:
     Pipe();
-    Pipe(uint64_t id_, const std::string& name_, double diameter_, bool in_repair_);
+    Pipe(int id_, const std::string& name_, double diameter_, bool in_repair_);
 
     
-    uint64_t getId() const;
+    int getId() const;
     std::string getName() const;
     double getDiameter() const;
     bool isInRepair() const;

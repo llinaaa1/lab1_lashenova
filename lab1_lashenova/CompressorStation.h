@@ -7,7 +7,7 @@
 
 class CompressorStation {
 private:
-    uint64_t id;  // Уникальный идентификатор станции
+    int id;
     std::string name;
     int total_workshops;
     int working_workshops;
@@ -16,10 +16,10 @@ private:
 public:
     // Конструкторы
     CompressorStation();
-    CompressorStation(uint64_t id_, const std::string& name_, int total_, int working_, const std::string& classification_);
+    CompressorStation(int id_, const std::string& name_, int total_, int working_, const std::string& classification_);
 
    // Методы чтения полей
-    uint64_t getId() const;
+    int getId() const;
     std::string getName() const;
     int getTotalWorkshops() const;
     int getWorkingWorkshops() const;

@@ -2,17 +2,17 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
-#include <limits> // для numeric_limits
+#include <limits>
 
 // конструктор по умолчанию - инициализирует все поля нулевыми/пустыми значениями
 Pipe::Pipe() : id(0), name(""), diameter(0.0), in_repair(false) {}
 // параметризированный конструктор - инициализирует поля переданными значениями
-Pipe::Pipe(uint64_t id_, const std::string& name_, double diameter_, bool in_repair_)
+Pipe::Pipe(int id_, const std::string& name_, double diameter_, bool in_repair_)
     : id(id_), name(name_), diameter(diameter_), in_repair(in_repair_) {
 }
 
 // Методы чтения полей
-uint64_t Pipe::getId() const { return id; }
+int Pipe::getId() const { return id; }
 std::string Pipe::getName() const { return name; }
 double Pipe::getDiameter() const { return diameter; }
 bool Pipe::isInRepair() const { return in_repair; }
@@ -41,7 +41,7 @@ Pipe Pipe::deserialize(const std::string& line) {
     }
     parts.push_back(cur);
     if (parts.size() != 4) throw std::runtime_error("Pipe::deserialize: wrong format");
-    uint64_t id = std::stoull(parts[0]);
+    int id = std::stoull(parts[0]);
     std::string name = parts[1];
     double diameter = std::stod(parts[2]);
     bool in_repair = (parts[3] != "0");
