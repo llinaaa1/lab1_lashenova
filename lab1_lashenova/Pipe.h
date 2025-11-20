@@ -10,7 +10,7 @@ class Pipe {
 private:
     int id;
     std::string name;
-    double diameter; 
+    int diameter; 
     bool in_repair;
 
 public:
@@ -24,7 +24,7 @@ public:
     bool isInRepair() const;
 
     void setName(const std::string& n);
-    void setDiameter(double d);
+    void setDiameter(int d);
     void setInRepair(bool r);
 
     

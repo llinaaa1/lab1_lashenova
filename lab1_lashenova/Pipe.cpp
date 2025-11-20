@@ -19,7 +19,7 @@ bool Pipe::isInRepair() const { return in_repair; }
 
 // Методы изменения
 void Pipe::setName(const std::string& n) { name = n; }
-void Pipe::setDiameter(double d) { diameter = d; }
+void Pipe::setDiameter(int d) { diameter = d; }
 void Pipe::setInRepair(bool r) { in_repair = r; }
 
 //Преобразует объект в строку для сохранения в файл

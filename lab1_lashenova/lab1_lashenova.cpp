@@ -6,7 +6,6 @@
 #include <sstream>
 #include "Manager.h"
 #include <chrono>
-#include <format>
 #include <fstream>
 
 using namespace std::chrono;
@@ -50,17 +49,6 @@ T GetCorrectNumber(T min, T max)
     return x;
 }
 
-
-// Тестовые данные для демонстрации
-void addSampleData(Manager& m) {
-    m.addPipe("MainLine-1", 500.0, false);
-    m.addPipe("Feeder-A", 250.0, true);
-    m.addPipe("Bypass-02", 300.0, false);
-    m.addStation("CS-North", 10, 8, "A");
-    m.addStation("CS-South", 6, 2, "B");
-    m.addStation("CS-East", 12, 12, "A+");
-}
-
 int main() {
     redirect_output_wrapper cerr_out(cerr);
 
@@ -75,7 +63,7 @@ int main() {
     cout << "=== Pipe and Compressor Station Manager ===\n";
 
     string logf;
-    cout << "Enter log filename (or press Enter for actions.log): ";
+    cout << "Enter log filename: ";
     INPUT_LINE(cin, logf);
 
     bool running = true;
@@ -93,12 +81,11 @@ int main() {
         cout << "10) List All Compressor Stations\n";
         cout << "11) Save to File\n";
         cout << "12) Load from File\n";
-        cout << "13) Add Sample Data\n";
         cout << "0) Exit\n";
 
         cout << "Choose an option: ";
 
-        switch (GetCorrectNumber(0, 13)) {
+        switch (GetCorrectNumber(0, 12)) {
         case 1: { // Добавление новой трубы
             cout << "Pipe name: ";
             string name;
@@ -113,33 +100,39 @@ int main() {
         }
         case 2: { // Редактирование существующей 
             cout << "Pipe ID to edit: ";
-            int id = GetCorrectNumber(1,10000);
+            int id = GetCorrectNumber(1, 10000);
             Pipe p = manager.findPipeById(id);
-            if (p.getId()==0) { 
-                cout << "Pipe with this ID not found\n"; 
-                break; 
+            if (p.getId() == 0) {
+                cout << "Pipe with this ID not found\n";
+                break;
             }
             cout << "Current data:\n" << p << "\n";
 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
             cout << "New name (Enter = no change): ";
             string newName;
-            INPUT_LINE(cin, newName);
-            cout << "New diameter (Enter = no change): ";
-            string dstr;
-            INPUT_LINE(cin, dstr);
-            if (!newName.empty()) p.setName(newName);
-            if (!dstr.empty()) {
-                try { double d = stod(dstr); p.setDiameter(d); }
-                catch (...) { cout << "Diameter not changed: invalid input\n"; }
+            getline(cin, newName);
+            if (!newName.empty()) {
+                p.setName(newName);
+                cout << "Name changed to: " << newName << endl;
             }
+
+            cout << "New diameter (Enter = no change): ";
+            int d = GetCorrectNumber(1,10000);
+            p.setDiameter(d);
+                       
             cout << "In repair? (1-yes/0-no/2-no change): ";
-            int repairChoice = GetCorrectNumber(0, 2); // исправлено
+            int repairChoice = GetCorrectNumber(0, 2);
             if (repairChoice == 0) {
                 p.setInRepair(false);
+                cout << "Repair status set to: NO\n";
             }
             else if (repairChoice == 1) {
                 p.setInRepair(true);
+                cout << "Repair status set to: YES\n";
             }
+
             cout << "Edited.\n";
             break;
         }
@@ -234,7 +227,7 @@ int main() {
             cout << "Batch editing " << ids.size() << " pipes.\n";
             cout << "New name for selected (Enter = no change): ";
             string newName;
-            INPUT_LINE(cin, newName);
+            getline(cin, newName);
             cout << "New diameter for selected (Enter = no change): ";
             string dstr;
             INPUT_LINE(cin, dstr);
@@ -349,11 +342,7 @@ int main() {
             if (manager.loadFromFile(fname)) cout << "Loaded.\n"; else cout << "Error loading.\n";
             break;
         }
-        case 13: { // Добавление тестовых данных
-            addSampleData(manager);
-            cout << "Sample data added.\n";
-            break;
-        }
+
         case 0: { // Выход из программы
             running = false;
             cout << "Goodbye!\n";
