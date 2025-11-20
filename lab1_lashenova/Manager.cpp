@@ -6,10 +6,8 @@
 #include <iomanip>
 #include <sstream>
 
-// Инициализирует начальные значения
 Manager::Manager() : next_pipe_id(1), next_station_id(1), log_filename("actions.log") {}
 
-// Конструктор с указанием файла лога
 Manager::Manager(const std::string& logFile) : next_pipe_id(1), next_station_id(1), log_filename(logFile) {}
 
 int Manager::makePipeId() {
@@ -30,8 +28,6 @@ std::vector<T> Manager::findEntities(const std::unordered_map<int, T>& container
     }
     return res;
 }
-
-// Явная инстанциация шаблонов
 template std::vector<Pipe> Manager::findEntities<Pipe, std::function<bool(const Pipe&)>>(const std::unordered_map<int, Pipe>&, std::function<bool(const Pipe&)>);
 template std::vector<CompressorStation> Manager::findEntities<CompressorStation, std::function<bool(const CompressorStation&)>>(const std::unordered_map<int, CompressorStation>&, std::function<bool(const CompressorStation&)>);
 
@@ -127,12 +123,20 @@ bool Manager::saveToFile(const std::string& filename) {
     if (!os) {
         return false;
     }
-    os << "NEXT_PIPE_ID|" << next_pipe_id << "\n";
-    os << "NEXT_STATION_ID|" << next_station_id << "\n";
-    os << "#PIPES\n";
-    for (const auto& p : pipes) os << p.second.serialize() << "\n";
-    os << "#STATIONS\n";
-    for (const auto& s : stations) os << s.second.serialize() << "\n";
+
+    for (const auto& p : pipes) {
+        os << p.second.getId() << "|"
+            << p.second.getName() << "|"
+            << p.second.getDiameter() << "|"
+            << p.second.isInRepair() << "\n";
+    }
+    for (const auto& s : stations) {
+        os << s.second.getId() << "|"
+            << s.second.getName() << "|"
+            << s.second.getTotalWorkshops() << "|"
+            << s.second.getWorkingWorkshops() << "|"
+            << s.second.getClassification() << "\n";
+    }
     os.close();
     return true;
 }
@@ -152,12 +156,12 @@ bool Manager::loadFromFile(const std::string& filename) {
     while (std::getline(is, line)) {
         if (line.empty()) continue;
         if (line.rfind("NEXT_PIPE_ID|", 0) == 0) {
-            try { loaded_next_pipe_id = std::stoull(line.substr(13)); }
+            try { loaded_next_pipe_id = std::stoi(line.substr(13)); }
             catch (...) { loaded_next_pipe_id = 1; }
             continue;
         }
         if (line.rfind("NEXT_STATION_ID|", 0) == 0) {
-            try { loaded_next_station_id = std::stoull(line.substr(16)); }
+            try { loaded_next_station_id = std::stoi(line.substr(16)); }
             catch (...) { loaded_next_station_id = 1; }
             continue;
         }
@@ -166,19 +170,51 @@ bool Manager::loadFromFile(const std::string& filename) {
 
         try {
             if (section == PIPES) {
-                Pipe p = Pipe::deserialize(line);
-                pipes.emplace(p.getId(), p);
+                std::istringstream iss(line);
+                std::string token;
+                std::vector<std::string> tokens;
+
+                while (std::getline(iss, token, '|')) {
+                    tokens.push_back(token);
+                }
+
+                if (tokens.size() >= 4) {
+                    int id = std::stoi(tokens[0]);
+                    std::string name = tokens[1];
+                    double diameter = std::stod(tokens[2]);
+                    bool in_repair = (tokens[3] == "1");
+
+                    Pipe p(id, name, diameter, in_repair);
+                    pipes.emplace(id, p);
+                }
             }
             else if (section == STATIONS) {
-                CompressorStation s = CompressorStation::deserialize(line);
-                stations.emplace(s.getId(), s);
+                // Парсим данные станции вручную
+                std::istringstream iss(line);
+                std::string token;
+                std::vector<std::string> tokens;
+
+                while (std::getline(iss, token, '|')) {
+                    tokens.push_back(token);
+                }
+
+                if (tokens.size() >= 5) {
+                    int id = std::stoi(tokens[0]);
+                    std::string name = tokens[1];
+                    int total_workshops = std::stoi(tokens[2]);
+                    int working_workshops = std::stoi(tokens[3]);
+                    std::string classification = (tokens[4]);
+
+                    CompressorStation s(id, name, total_workshops, working_workshops, classification);
+                    stations.emplace(id, s);
+                }
             }
         }
         catch (const std::exception& e) {
+            std::cerr << "Error parsing line: " << line << " - " << e.what() << std::endl;
         }
     }
     is.close();
-
     // Корректировка next_id
     int max_pipe_id = 0;
     int max_station_id = 0;
@@ -196,14 +232,18 @@ bool Manager::loadFromFile(const std::string& filename) {
 void Manager::batchEditPipes(const std::vector<int>& ids, const std::string& newName, double newDiameter, int changeRepairFlag) {
     std::ostringstream oss;
     oss << "Batch edit pipes count=" << ids.size() << " newName=\"" << newName << "\" newDiameter=" << newDiameter << " changeRepair=" << changeRepairFlag;
+    std::cout << oss.str() << std::endl;
 
     // Проходим по всем id труб для редактирования
     for (int id : ids) {
-        Pipe p = findPipeById(id);
+        auto it = pipes.find(id);
+        if (it != pipes.end()) {
+            Pipe& p = it->second; // Используем ссылку для изменения оригинала
 
-        if (!newName.empty()) p.setName(newName);
-        if (newDiameter > 0.0) p.setDiameter(newDiameter);
-        if (changeRepairFlag == 0) p.setInRepair(false);
-        if (changeRepairFlag == 1) p.setInRepair(true);
+            if (!newName.empty()) p.setName(newName);
+            if (newDiameter > 0.0) p.setDiameter(newDiameter);
+            if (changeRepairFlag == 0) p.setInRepair(false);
+            if (changeRepairFlag == 1) p.setInRepair(true);
+        }
     }
 }

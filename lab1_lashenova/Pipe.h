@@ -2,8 +2,6 @@
 #define PIPE_H
 
 #include <string>
-#include <cstdint>
-#include <sstream>
 #include <iostream>
 
 class Pipe {
@@ -15,7 +13,7 @@ private:
 
 public:
     Pipe();
-    Pipe(int id_, const std::string& name_, double diameter_, bool in_repair_);
+    Pipe(int id_, const std::string& name_, int diameter_, bool in_repair_);
 
     
     int getId() const;
@@ -28,12 +26,9 @@ public:
     void setInRepair(bool r);
 
     
-    std::string serialize() const;
-    static Pipe deserialize(const std::string& line);
-
-    
     friend std::ostream& operator<<(std::ostream& os, const Pipe& p);
     friend std::istream& operator>>(std::istream& is, Pipe& p);
+
 };
 
 #endif // PIPE_H
