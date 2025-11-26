@@ -2,8 +2,6 @@
 #include <fstream>
 #include <iostream>
 #include <chrono>
-#include <ctime>
-#include <iomanip>
 #include <sstream>
 
 Manager::Manager() : next_pipe_id(1), next_station_id(1), log_filename("actions.log") {}
@@ -120,10 +118,8 @@ size_t Manager::getStationCount() const { return stations.size(); }
 // Операции с файлами
 bool Manager::saveToFile(const std::string& filename) {
     std::ofstream os(filename);
-    if (!os) {
-        return false;
-    }
-
+    if (!os) return false;
+    
     for (const auto& p : pipes) {
         os << p.second.getId() << "|"
             << p.second.getName() << "|"
@@ -143,91 +139,54 @@ bool Manager::saveToFile(const std::string& filename) {
 
 bool Manager::loadFromFile(const std::string& filename) {
     std::ifstream is(filename);
-    if (!is) {
-        return false;
-    }
+    if (!is) return false;
+
     pipes.clear();
     stations.clear();
     std::string line;
-    enum Section { NONE, PIPES, STATIONS } section = NONE;
-    int loaded_next_pipe_id = 1;
-    int loaded_next_station_id = 1;
 
     while (std::getline(is, line)) {
         if (line.empty()) continue;
-        if (line.rfind("NEXT_PIPE_ID|", 0) == 0) {
-            try { loaded_next_pipe_id = std::stoi(line.substr(13)); }
-            catch (...) { loaded_next_pipe_id = 1; }
-            continue;
+
+        std::istringstream iss(line);
+        std::string type;
+        std::getline(iss, type, '|');
+
+        if (type == "PIPE") {
+            std::string id_str, name, diam_str, repair_str;
+            std::getline(iss, id_str, '|');
+            std::getline(iss, name, '|');
+            std::getline(iss, diam_str, '|');
+            std::getline(iss, repair_str, '|');
+
+            int id = std::stoi(id_str);
+            double diameter = std::stod(diam_str);
+            bool in_repair = (repair_str == "1");
+
+            pipes.emplace(id, Pipe(id, name, diameter, in_repair));
+            if (id >= next_pipe_id) next_pipe_id = id + 1;
         }
-        if (line.rfind("NEXT_STATION_ID|", 0) == 0) {
-            try { loaded_next_station_id = std::stoi(line.substr(16)); }
-            catch (...) { loaded_next_station_id = 1; }
-            continue;
-        }
-        if (line == "#PIPES") { section = PIPES; continue; }
-        if (line == "#STATIONS") { section = STATIONS; continue; }
+        else if (type == "STATION") {
+            std::string id_str, name, total_str, working_str, classification;
+            std::getline(iss, id_str, '|');
+            std::getline(iss, name, '|');
+            std::getline(iss, total_str, '|');
+            std::getline(iss, working_str, '|');
+            std::getline(iss, classification, '|');
 
-        try {
-            if (section == PIPES) {
-                std::istringstream iss(line);
-                std::string token;
-                std::vector<std::string> tokens;
+            int id = std::stoi(id_str);
+            int total = std::stoi(total_str);
+            int working = std::stoi(working_str);
 
-                while (std::getline(iss, token, '|')) {
-                    tokens.push_back(token);
-                }
-
-                if (tokens.size() >= 4) {
-                    int id = std::stoi(tokens[0]);
-                    std::string name = tokens[1];
-                    double diameter = std::stod(tokens[2]);
-                    bool in_repair = (tokens[3] == "1");
-
-                    Pipe p(id, name, diameter, in_repair);
-                    pipes.emplace(id, p);
-                }
-            }
-            else if (section == STATIONS) {
-                // Парсим данные станции вручную
-                std::istringstream iss(line);
-                std::string token;
-                std::vector<std::string> tokens;
-
-                while (std::getline(iss, token, '|')) {
-                    tokens.push_back(token);
-                }
-
-                if (tokens.size() >= 5) {
-                    int id = std::stoi(tokens[0]);
-                    std::string name = tokens[1];
-                    int total_workshops = std::stoi(tokens[2]);
-                    int working_workshops = std::stoi(tokens[3]);
-                    std::string classification = (tokens[4]);
-
-                    CompressorStation s(id, name, total_workshops, working_workshops, classification);
-                    stations.emplace(id, s);
-                }
-            }
-        }
-        catch (const std::exception& e) {
-            std::cerr << "Error parsing line: " << line << " - " << e.what() << std::endl;
+            stations.emplace(id, CompressorStation(id, name, total, working, classification));
+            if (id >= next_station_id) next_station_id = id + 1;
         }
     }
+
     is.close();
-    // Корректировка next_id
-    int max_pipe_id = 0;
-    int max_station_id = 0;
-
-    // Находим максимальные id
-    for (const auto& p : pipes) if (p.first > max_pipe_id) max_pipe_id = p.first;
-    for (const auto& s : stations) if (s.first > max_station_id) max_station_id = s.first;
-    
-    next_pipe_id = loaded_next_pipe_id > max_pipe_id ? loaded_next_pipe_id : max_pipe_id + 1;
-    next_station_id = loaded_next_station_id > max_station_id + 1 ? loaded_next_station_id : max_station_id;
-
     return true;
 }
+
 // Массовое редактирование труб
 void Manager::batchEditPipes(const std::vector<int>& ids, const std::string& newName, double newDiameter, int changeRepairFlag) {
     std::ostringstream oss;

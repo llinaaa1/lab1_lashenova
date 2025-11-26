@@ -1,7 +1,4 @@
 #include "CompressorStation.h"
-#include <sstream>
-#include <vector>
-#include <stdexcept>
 #include <iostream>
 #include <limits>
 
@@ -28,32 +25,6 @@ double CompressorStation::percentIdle() const { // Вычисление процента простоя
     if (total_workshops <= 0) return 0.0;
     int idle = total_workshops - working_workshops;
     return (100.0 * idle) / total_workshops;
-}
-
-std::string CompressorStation::serialize() const {
-    std::ostringstream os;
-    // id|name|total|working|classification
-    os << id << '|' << name << '|' << total_workshops << '|' << working_workshops << '|' << classification;
-    return os.str();
-}
-
-CompressorStation CompressorStation::deserialize(const std::string& line) {
-    std::vector<std::string> parts;
-    std::string cur;
-    for (char c : line) {
-        if (c == '|') { parts.push_back(cur); cur.clear(); }
-        else cur.push_back(c);
-    }
-    parts.push_back(cur);
-    if (parts.size() != 5) throw std::runtime_error("CompressorStation::deserialize: wrong format");
-    
-    // Парсим данные из строковых частей
-    int id = std::stoull(parts[0]);
-    std::string name = parts[1];
-    int total = std::stoi(parts[2]);
-    int working = std::stoi(parts[3]);
-    std::string classification = parts[4];
-    return CompressorStation(id, name, total, working, classification);
 }
 
 std::ostream& operator<<(std::ostream& os, const CompressorStation& cs) {

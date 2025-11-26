@@ -1,15 +1,13 @@
 #include "Pipe.h"
 #include <iostream>
 #include <limits>
-#include <fstream>
-#include <string>
+
 
 Pipe::Pipe() : id(0), name(""), diameter(0.0), in_repair(false) {}
 
 Pipe::Pipe(int id_, const std::string& name_,int diameter_, bool in_repair_)
     : id(id_), name(name_), diameter(diameter_), in_repair(in_repair_) {
 }
-
 
 int Pipe::getId() const { return id; }
 std::string Pipe::getName() const { return name; }
@@ -20,7 +18,7 @@ void Pipe::setName(const std::string& n) { name = n; }
 void Pipe::setDiameter(int d) { diameter = d; }
 void Pipe::setInRepair(bool r) { in_repair = r; }
 
-// Оператор вывода
+
 std::ostream& operator<<(std::ostream& os, const Pipe& p) {
     os << "ID=" << p.id
         << " | Name=\"" << p.name << "\""
@@ -29,7 +27,6 @@ std::ostream& operator<<(std::ostream& os, const Pipe& p) {
     return os;
 }
 
-// Оператор ввода
 std::istream& operator>>(std::istream& is, Pipe& p) {
     std::cout << "Enter pipe name: ";
     std::getline(is, p.name);
