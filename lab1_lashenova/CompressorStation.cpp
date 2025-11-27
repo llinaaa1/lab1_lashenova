@@ -19,7 +19,6 @@ std::string CompressorStation::getClassification() const { return classification
 void CompressorStation::setName(const std::string& n) { name = n; }
 void CompressorStation::setTotalWorkshops(int t) { total_workshops = t; }
 void CompressorStation::setWorkingWorkshops(int w) { working_workshops = w; }
-void CompressorStation::setClassification(const std::string& c) { classification = c; }
 
 double CompressorStation::percentIdle() const { // Вычисление процента простоя
     if (total_workshops <= 0) return 0.0;

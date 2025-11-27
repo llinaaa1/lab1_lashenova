@@ -80,6 +80,11 @@ size_t Manager::getPipeCount() const { return pipes.size(); }
 
 // Методы для станций
 int Manager::addStation(const std::string& name, int total, int working, const std::string& classification) {
+    if (working > total) {
+        std::cout << "Error: Working workshops (" << working
+            << ") cannot be more than total workshops (" << total << ")\n";
+        return -1;
+    }
     int id = makeStationId();
     stations.emplace(id, CompressorStation(id, name, total, working, classification));
     return id;

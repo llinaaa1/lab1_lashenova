@@ -62,9 +62,6 @@ int main() {
     Manager manager;
     cout << "=== Pipe and Compressor Station Manager ===\n";
 
-    string logf;
-    cout << "Enter log filename: ";
-    INPUT_LINE(cin, logf);
 
     bool running = true;
     while (running) {
@@ -117,10 +114,6 @@ int main() {
                 p.setName(newName);
                 cout << "Name changed to: " << newName << endl;
             }
-
-            cout << "New diameter: ";
-            int d = GetCorrectNumber(1,10000);
-            p.setDiameter(d);
                        
             cout << "In repair? (1-yes/0-no/2-no change): ";
             int repairChoice = GetCorrectNumber(0, 2);
@@ -228,14 +221,7 @@ int main() {
             cout << "New name for selected: ";
             string newName;
             getline(cin, newName);
-            cout << "New diameter for selected: ";
-            string dstr;
-            INPUT_LINE(cin, dstr);
-            double newDiameter = -1.0;
-            if (!dstr.empty()) {
-                try { newDiameter = stod(dstr); }
-                catch (...) { newDiameter = -1.0; }
-            }
+
             cout << "Change 'in repair' flag? (0 = no change, 1 = set true, 2 = set false)\n";
             cout << "Choice: ";
             int rf = GetCorrectNumber(0,2);
@@ -245,7 +231,7 @@ int main() {
             else changeFlag = -1; // Без изменений 
 
             vector<int> idVector(ids.begin(), ids.end());
-            manager.batchEditPipes(idVector, newName, newDiameter, changeFlag);
+
             cout << "Batch editing completed for " << ids.size() << " pipes.\n";
             break;
         }
@@ -260,8 +246,20 @@ int main() {
             INPUT_LINE(cin, name);
             cout << "Total workshops: ";
             int total = GetCorrectNumber(1,10000);
-            cout << "Working workshops: ";
-            int working = GetCorrectNumber(1,10000);
+
+            int working;
+            while (true) {
+                cout << "Working workshops: ";
+                working = GetCorrectNumber(0, 10000); 
+
+                if (working <= total) {
+                    break; 
+                }
+                else {
+                    cout << "Error: Working workshops cannot be more than total workshops (" << total << ")\n";
+                    cout << "Please enter a valid number (0-" << total << "): ";
+                }
+            }
             cout << "Classification: ";
             string cls;
             INPUT_LINE(cin, cls);
@@ -279,21 +277,31 @@ int main() {
             cout << "New name: ";
             string n;
             INPUT_LINE(cin, n);
-            cout << "New total: ";
-            string tot;
-            INPUT_LINE(cin, tot);
+
             cout << "New working: ";
             string work;
             INPUT_LINE(cin, work);
-            cout << "New classification: ";
-            string cls;
-            INPUT_LINE(cin, cls);
             if (!n.empty()) s.setName(n);
-            if (!tot.empty()) { try { s.setTotalWorkshops(stoi(tot)); } catch (...) {} }
-            if (!work.empty()) { try { s.setWorkingWorkshops(stoi(work)); } catch (...) {} }
-            if (!cls.empty()) s.setClassification(cls);
+           
+            if (!work.empty()) { 
+                try { 
+                    int new_working = stoi(work);
+                    if (new_working > s.getTotalWorkshops()) {
+                        cout << "Error: Working workshops (" << new_working
+                            << ") cannot be more than total workshops (" << s.getTotalWorkshops() << ")\n";
+                    }
+                    else {
+                        s.setWorkingWorkshops(new_working);
+                        cout << "Working workshops updated to: " << new_working << endl;
+                    }
+                }
+                catch (...) {
+                    cout << "Invalid number format\n";
+                }
+            }
             cout << "Edited.\n";
             break;
+
         }
         case 8: { // Удаление станции
             cout << "Compressor Station ID to delete: ";

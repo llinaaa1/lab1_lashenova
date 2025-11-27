@@ -25,7 +25,6 @@ public:
     void setName(const std::string& n);
     void setTotalWorkshops(int t);
     void setWorkingWorkshops(int w);
-    void setClassification(const std::string& c);
 
     
     double percentIdle() const;  //Процент простоя станции
