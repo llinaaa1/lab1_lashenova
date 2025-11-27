@@ -32,6 +32,7 @@ public:
     int addPipe(const Pipe& pipe);
     bool removePipeById(int id);
     Pipe findPipeById(int id);
+    Pipe& getPipeById(int id);
     std::vector<Pipe> findPipesByName(const std::string& substring);
     std::vector<Pipe> findPipesByRepairFlag(bool in_repair);
     const std::unordered_map<int, Pipe>& getPipes() const;
@@ -41,6 +42,7 @@ public:
     int addStation(const CompressorStation& station);
     bool removeStationById(int id);
     CompressorStation findStationById(int id);
+    CompressorStation& getStationById(int id);
     std::vector<CompressorStation> findStationsByName(const std::string& substring);
     std::vector<CompressorStation> findStationsByIdlePercent(double minIdlePercent);
     const std::unordered_map<int, CompressorStation>& getStations() const;

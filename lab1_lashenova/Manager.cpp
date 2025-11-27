@@ -1,7 +1,6 @@
 #include "Manager.h"
 #include <fstream>
 #include <iostream>
-#include <chrono>
 #include <sstream>
 
 Manager::Manager() : next_pipe_id(1), next_station_id(1), log_filename("actions.log") {}
@@ -48,10 +47,18 @@ bool Manager::removePipeById(int id) {
     pipes.erase(it);
     return true;
 }
-
 Pipe Manager::findPipeById(int id) {
     auto it = pipes.find(id);
-    return (it != pipes.end()) ? it -> second : Pipe();
+    return (it != pipes.end()) ? it->second : Pipe();
+}
+
+Pipe& Manager::getPipeById(int id) {
+    auto it = pipes.find(id);
+    if (it != pipes.end()) {
+        return it->second;
+    }
+    static Pipe emptyPipe;
+    return emptyPipe;
 }
 
 std::vector<Pipe> Manager::findPipesByName(const std::string& substring) {
@@ -94,6 +101,14 @@ bool Manager::removeStationById(int id) {
 CompressorStation Manager::findStationById(int id) {
     auto it = stations.find(id);
     return (it != stations.end()) ? it->second : CompressorStation();
+}
+CompressorStation& Manager::getStationById(int id) {
+    auto it = stations.find(id);
+    if (it != stations.end()) {
+        return it->second;
+    }
+    static CompressorStation emptyStation;
+    return emptyStation;
 }
 
 std::vector<CompressorStation> Manager::findStationsByName(const std::string& substring) {

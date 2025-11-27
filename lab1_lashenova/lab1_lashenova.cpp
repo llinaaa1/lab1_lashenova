@@ -101,7 +101,7 @@ int main() {
         case 2: { // Редактирование существующей 
             cout << "Pipe ID to edit: ";
             int id = GetCorrectNumber(1, 10000);
-            Pipe p = manager.findPipeById(id);
+            Pipe& p = manager.getPipeById(id);
             if (p.getId() == 0) {
                 cout << "Pipe with this ID not found\n";
                 break;
@@ -110,7 +110,7 @@ int main() {
 
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            cout << "New name (Enter = no change): ";
+            cout << "New name: ";
             string newName;
             getline(cin, newName);
             if (!newName.empty()) {
@@ -118,7 +118,7 @@ int main() {
                 cout << "Name changed to: " << newName << endl;
             }
 
-            cout << "New diameter (Enter = no change): ";
+            cout << "New diameter: ";
             int d = GetCorrectNumber(1,10000);
             p.setDiameter(d);
                        
@@ -225,10 +225,10 @@ int main() {
 
             // Массовое редактирование
             cout << "Batch editing " << ids.size() << " pipes.\n";
-            cout << "New name for selected (Enter = no change): ";
+            cout << "New name for selected: ";
             string newName;
             getline(cin, newName);
-            cout << "New diameter for selected (Enter = no change): ";
+            cout << "New diameter for selected: ";
             string dstr;
             INPUT_LINE(cin, dstr);
             double newDiameter = -1.0;
@@ -272,20 +272,20 @@ int main() {
         case 7: { // Редактирование существующей
             cout << "Compressor Station ID to edit: ";
             int id = GetCorrectNumber(1,10000);
-            CompressorStation s = manager.findStationById(id);
+            CompressorStation& s = manager.getStationById(id);
             if (s.getId()==0) { cout << "Not found.\n"; break; }
             cout << s << "\n";
 
-            cout << "New name (Enter = no change): ";
+            cout << "New name: ";
             string n;
             INPUT_LINE(cin, n);
-            cout << "New total (Enter = no change): ";
+            cout << "New total: ";
             string tot;
             INPUT_LINE(cin, tot);
-            cout << "New working (Enter = no change): ";
+            cout << "New working: ";
             string work;
             INPUT_LINE(cin, work);
-            cout << "New classification (Enter = no change): ";
+            cout << "New classification: ";
             string cls;
             INPUT_LINE(cin, cls);
             if (!n.empty()) s.setName(n);
