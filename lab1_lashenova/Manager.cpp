@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "Utils.h"
 
 Manager::Manager() : next_pipe_id(1), next_station_id(1), log_filename("actions.log") {}
 
@@ -78,13 +79,7 @@ std::vector<Pipe> Manager::findPipesByRepairFlag(bool in_repair) {
 const std::unordered_map<int, Pipe>& Manager::getPipes() const { return pipes; }
 size_t Manager::getPipeCount() const { return pipes.size(); }
 
-// Методы для станций
 int Manager::addStation(const std::string& name, int total, int working, const std::string& classification) {
-    if (working > total) {
-        std::cout << "Error: Working workshops (" << working
-            << ") cannot be more than total workshops (" << total << ")\n";
-        return -1;
-    }
     int id = makeStationId();
     stations.emplace(id, CompressorStation(id, name, total, working, classification));
     return id;
@@ -135,7 +130,6 @@ std::vector<CompressorStation> Manager::findStationsByIdlePercent(double minIdle
 const std::unordered_map<int, CompressorStation>& Manager::getStations() const { return stations; }
 size_t Manager::getStationCount() const { return stations.size(); }
 
-// Операции с файлами
 bool Manager::saveToFile(const std::string& filename) {
     std::ofstream os(filename);
     if (!os) return false;
@@ -207,22 +201,42 @@ bool Manager::loadFromFile(const std::string& filename) {
     return true;
 }
 
-// Массовое редактирование труб
-void Manager::batchEditPipes(const std::vector<int>& ids, const std::string& newName, double newDiameter, int changeRepairFlag) {
-    std::ostringstream oss;
-    oss << "Batch edit pipes count=" << ids.size() << " newName=\"" << newName << "\" newDiameter=" << newDiameter << " changeRepair=" << changeRepairFlag;
-    std::cout << oss.str() << std::endl;
-
-    // Проходим по всем id труб для редактирования
+void Manager::batchEditPipes(const std::vector<int>& ids, const std::string& newName, int changeRepairFlag) {
     for (int id : ids) {
         auto it = pipes.find(id);
         if (it != pipes.end()) {
-            Pipe& p = it->second; // Используем ссылку для изменения оригинала
-
-            if (!newName.empty()) p.setName(newName);
-            if (newDiameter > 0.0) p.setDiameter(newDiameter);
+            Pipe& p = it->second;
             if (changeRepairFlag == 0) p.setInRepair(false);
             if (changeRepairFlag == 1) p.setInRepair(true);
+
+
+        }
+    }
+}
+void Manager::batchEditStations(const std::vector<int>& ids, const std::string& newName, int workingStationsFlag) {
+    for (int id : ids) {
+        auto it = stations.find(id);
+        if (it != stations.end()) {
+            CompressorStation& cs = it->second;
+
+            if (!newName.empty()) {
+                cs.setName(newName);
+            }
+            if (workingStationsFlag != 0) {
+                int currentWorking = cs.getWorkingWorkshops();
+                int total = cs.getTotalWorkshops();
+            
+                if (workingStationsFlag == 1) {
+                    if (currentWorking < total) {
+                        cs.setWorkingWorkshops(currentWorking + 1);
+                    }
+                }
+                else if (workingStationsFlag == -1) {
+                    if (currentWorking > 0) {
+                        cs.setWorkingWorkshops(currentWorking - 1);
+                    }
+                }
+            }
         }
     }
 }

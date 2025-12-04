@@ -27,7 +27,7 @@ public:
     void setWorkingWorkshops(int w);
 
     
-    double percentIdle() const;  //Процент простоя станции
+    double percentIdle() const;
 
     friend std::ostream& operator<<(std::ostream& os, const CompressorStation& cs);
     friend std::istream& operator>>(std::istream& is, CompressorStation& cs);

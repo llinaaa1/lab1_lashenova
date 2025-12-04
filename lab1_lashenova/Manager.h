@@ -51,8 +51,8 @@ public:
     bool saveToFile(const std::string& filename);
     bool loadFromFile(const std::string& filename);
 
-    // Массовое редактирование труб
-    void batchEditPipes(const std::vector<int>& ids, const std::string& newName, double newDiameter, int changeRepairFlag);
+    void batchEditPipes(const std::vector<int>& ids, const std::string& newName, int changeRepairFlag);
+    void batchEditStations(const std::vector<int>& ids, const std::string& newName, int workingStationsFlag);
 };
 
 #endif // MANAGER_H

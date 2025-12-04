@@ -20,7 +20,7 @@ void CompressorStation::setName(const std::string& n) { name = n; }
 void CompressorStation::setTotalWorkshops(int t) { total_workshops = t; }
 void CompressorStation::setWorkingWorkshops(int w) { working_workshops = w; }
 
-double CompressorStation::percentIdle() const { // Вычисление процента простоя
+double CompressorStation::percentIdle() const {
     if (total_workshops <= 0) return 0.0;
     int idle = total_workshops - working_workshops;
     return (100.0 * idle) / total_workshops;
@@ -44,7 +44,6 @@ std::istream& operator>>(std::istream& is, CompressorStation& cs) {
     std::cout << "Enter working workshops: ";
     is >> cs.working_workshops;
 
-    //Очистка буфера ввода после ввода чисел
     is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cout << "Enter classification: ";
     std::getline(is, cs.classification);

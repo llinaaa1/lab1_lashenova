@@ -13,9 +13,6 @@ int Pipe::getId() const { return id; }
 std::string Pipe::getName() const { return name; }
 double Pipe::getDiameter() const { return diameter; }
 bool Pipe::isInRepair() const { return in_repair; }
-
-void Pipe::setName(const std::string& n) { name = n; }
-void Pipe::setDiameter(int d) { diameter = d; }
 void Pipe::setInRepair(bool r) { in_repair = r; }
 
 

@@ -21,8 +21,6 @@ public:
     double getDiameter() const;
     bool isInRepair() const;
 
-    void setName(const std::string& n);
-    void setDiameter(int d);
     void setInRepair(bool r);
 
     
