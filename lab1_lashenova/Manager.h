@@ -15,15 +15,12 @@ private:
     
     int next_pipe_id;
     int next_station_id;
-    std::string log_filename;
-
 
     template<typename T, typename Predicate>
     std::vector<T> findEntities(const std::unordered_map<int, T>& container, Predicate pred);
 
 public:
     Manager();
-    Manager(const std::string& logFile);
 
     int makePipeId();
     int makeStationId();
@@ -51,8 +48,8 @@ public:
     bool saveToFile(const std::string& filename);
     bool loadFromFile(const std::string& filename);
 
-    void batchEditPipes(const std::vector<int>& ids, const std::string& newName, int changeRepairFlag);
-    void batchEditStations(const std::vector<int>& ids, const std::string& newName, int workingStationsFlag);
+    void batchEditPipes(const std::vector<int>& ids, int changeRepairFlag);
+    void batchEditStations(const std::vector<int>& ids,int workingStationsFlag);
 };
 
 #endif // MANAGER_H

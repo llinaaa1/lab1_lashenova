@@ -4,9 +4,7 @@
 #include <sstream>
 #include "Utils.h"
 
-Manager::Manager() : next_pipe_id(1), next_station_id(1), log_filename("actions.log") {}
-
-Manager::Manager(const std::string& logFile) : next_pipe_id(1), next_station_id(1), log_filename(logFile) {}
+Manager::Manager() : next_pipe_id(1), next_station_id(1) {}
 
 int Manager::makePipeId() {
     return next_pipe_id++;
@@ -122,8 +120,6 @@ std::vector<CompressorStation> Manager::findStationsByIdlePercent(double minIdle
     auto res = findEntities<CompressorStation>(stations, [minIdlePercent](const CompressorStation& s) {
         return s.percentIdle() >= minIdlePercent;
         });
-    std::ostringstream oss;
-    oss << "Searched stations by minIdlePercent=" << minIdlePercent << " -> " << res.size() << " found";
     return res;
 }
 
@@ -135,13 +131,13 @@ bool Manager::saveToFile(const std::string& filename) {
     if (!os) return false;
     
     for (const auto& p : pipes) {
-        os << p.second.getId() << "|"
+        os << "PIPE|" << p.second.getId() << "|"
             << p.second.getName() << "|"
             << p.second.getDiameter() << "|"
             << p.second.isInRepair() << "\n";
     }
     for (const auto& s : stations) {
-        os << s.second.getId() << "|"
+        os << "STATION|" << s.second.getId() << "|"
             << s.second.getName() << "|"
             << s.second.getTotalWorkshops() << "|"
             << s.second.getWorkingWorkshops() << "|"
@@ -201,27 +197,37 @@ bool Manager::loadFromFile(const std::string& filename) {
     return true;
 }
 
-void Manager::batchEditPipes(const std::vector<int>& ids, const std::string& newName, int changeRepairFlag) {
-    for (int id : ids) {
+void Manager::batchEditPipes(const std::vector<int>& ids, int changeRepairFlag) {
+    std::set<int> idSet(ids.begin(), ids.end());
+
+    auto idFilter = [&idSet](const Pipe& pipe, int) {
+        return idSet.find(pipe.getId()) != idSet.end();
+        };
+
+    std::set<int> foundIds = find_by_filter(pipes, idFilter, 0);
+
+    for (int id : foundIds) {
         auto it = pipes.find(id);
         if (it != pipes.end()) {
             Pipe& p = it->second;
             if (changeRepairFlag == 0) p.setInRepair(false);
-            if (changeRepairFlag == 1) p.setInRepair(true);
-
-
+            else if (changeRepairFlag == 1) p.setInRepair(true);
         }
     }
+    std::cout << "Updated " << foundIds.size() << " pipes.\n";
 }
-void Manager::batchEditStations(const std::vector<int>& ids, const std::string& newName, int workingStationsFlag) {
-    for (int id : ids) {
+void Manager::batchEditStations(const std::vector<int>& ids, int workingStationsFlag) {
+    std::set<int> idSet(ids.begin(), ids.end());
+    auto idFilter = [&idSet](const CompressorStation& station, int) {
+        return idSet.find(station.getId()) != idSet.end();
+        };
+    std::set<int> foundIds = find_by_filter(stations, idFilter, 0);
+
+    for (int id : foundIds) {
         auto it = stations.find(id);
         if (it != stations.end()) {
             CompressorStation& cs = it->second;
 
-            if (!newName.empty()) {
-                cs.setName(newName);
-            }
             if (workingStationsFlag != 0) {
                 int currentWorking = cs.getWorkingWorkshops();
                 int total = cs.getTotalWorkshops();
@@ -239,4 +245,5 @@ void Manager::batchEditStations(const std::vector<int>& ids, const std::string& 
             }
         }
     }
+    std::cout << "Updated " << foundIds.size() << " stations.\n";
 }

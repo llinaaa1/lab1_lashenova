@@ -8,12 +8,12 @@ class Pipe {
 private:
     int id;
     std::string name;
-    int diameter; 
+    double diameter; 
     bool in_repair;
 
 public:
     Pipe();
-    Pipe(int id_, const std::string& name_, int diameter_, bool in_repair_);
+    Pipe(int id_, const std::string& name_, double diameter_, bool in_repair_);
 
     
     int getId() const;
@@ -26,7 +26,5 @@ public:
     
     friend std::ostream& operator<<(std::ostream& os, const Pipe& p);
     friend std::istream& operator>>(std::istream& is, Pipe& p);
-
 };
-
 #endif // PIPE_H

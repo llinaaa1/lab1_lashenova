@@ -3,7 +3,7 @@
 #include <limits>
 #include <vector>
 #include <set>
-#include <sstream>
+#include <ctime>
 #include "Manager.h"
 #include "Utils.h"
 
@@ -15,7 +15,7 @@ void addPipe(Manager& manager) {
     INPUT_LINE(cin, name);
 
     cout << "Diameter (number): ";
-    double diam = GetCorrectNumber(1.0, 10000.0);
+    int diam = GetCorrectNumber(1, 10000);
 
     cout << "In repair? (1 - yes/0 - no): ";
     bool inrep = GetCorrectNumber(0, 1) == 1;
@@ -27,13 +27,13 @@ void addPipe(Manager& manager) {
 void editPipe(Manager& manager){
     cout << "Pipe ID to edit: ";
     int id = GetCorrectNumber(1, 10000);
+
     Pipe& p = manager.getPipeById(id);
     if (p.getId() == 0) {
         cout << "Pipe with this ID not found\n";
+        return;
     }
     cout << "Current data:\n" << p << "\n";
-
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     cout << "In repair? (1-yes/0-no/2-no change): ";
     int repairChoice = GetCorrectNumber(0, 2);
@@ -56,45 +56,53 @@ void deletePipe(Manager& manager){
 
 void batchEditPipes(Manager& manager){
     cout << "Search pipes for batch editing:\n";
-    cout << "1) by name\n";
-    cout << "2) by 'in repair' flag\n";
-    cout << "3) enter IDs manually\n";
-    cout << "Choose search method: ";
-    int m = GetCorrectNumber(1,3);
+    cout << "1. By name\n";
+    cout << "2. By repair status\n";
+    cout << "3. By IDs\n";
+    cout << "Choice: ";
+
+    int choice = GetCorrectNumber(1,3);
 
     set<int> ids;
 
-    if (m == 1) {
-    cout << "Enter substring of name: ";
-    string q;
-    INPUT_LINE(cin, q);
-    auto res = manager.findPipesByName(q);
-    cout << "Found " << res.size() << " pipes:\n";
-    for (auto p : res) {
-        cout << p << "\n";
-        ids.insert(p.getId());
-    }
-}
-    else if (m == 2) { 
-        cout << "Search pipes in repair? (y = yes, n = no): ";
-        string rep;
-        INPUT_LINE(cin, rep);
-        bool flag = (rep.size() > 0 && (rep[0] == 'y' || rep[0] == 'Y'));
-        auto res = manager.findPipesByRepairFlag(flag);
-        cout << "Found " << res.size() << " pipes:\n";
-        for (auto p : res) {
-            cout << p << "\n";
-            ids.insert(p.getId());
+    if (choice == 1) {
+        cout << "Enter substring of name: ";
+        string q;
+        INPUT_LINE(cin, q);
+
+        ids = find_by_filter(manager.getPipes(), filter_pipe_by_name, q);
+        cout << "Found " << ids.size() << " pipes:\n";
+
+        for (int id : ids) {
+            cout << manager.getPipeById(id) << "\n";
         }
-}
-    else if (m == 3) {
-        cout << "Enter IDs separated by space: ";
-        string line;
-        INPUT_LINE(cin, line);
-        istringstream iss(line);
-        int v;
-        while (iss >> v) ids.insert(v);
-        cout << "Selected " << ids.size() << " pipes for editing.\n";
+    }
+    else if (choice == 2) { 
+        cout << "Search pipes in repair? (1-yes, 0-no): ";
+        bool inRepair = GetCorrectNumber(0, 1) == 1;
+
+        ids = find_by_filter(manager.getPipes(), filter_pipe_by_repair, inRepair);
+        cout << "Found " << ids.size() << " pipes:\n";
+
+        for (int id : ids) {
+            cout << manager.getPipeById(id) << "\n";
+        }
+    }
+    else if (choice == 3) {
+        cout << "Enter IDs (0 to finish):\n";
+        while (true) {
+            cout << "ID: ";
+            int id = GetCorrectNumber(0, 10000);
+            if (id == 0) break;
+
+            Pipe& pipe = manager.getPipeById(id);
+            if (pipe.getId() == 0) {
+                cout << "Pipe with ID " << id << " not found!\n";
+            } else {
+                ids.insert(id);
+                cout << "Added pipe ID: " << id << "\n";
+            }
+        }
     }
     else {
         cout << "Invalid choice.\n";
@@ -106,53 +114,20 @@ void batchEditPipes(Manager& manager){
         return;
     }
 
-    cout << "You selected " << ids.size() << " pipes for batch editing.\n";
-    cout << "Do you want to edit all of them? (1-yes/0-no): ";
-    int confirm = GetCorrectNumber(0, 1);
-
-    if (confirm == 0) {
-        set<int> selectedIds;
-        cout << "Enter the IDs you want to edit (separated by space): ";
-        string idLine;
-        INPUT_LINE(cin, idLine);
-        istringstream idStream(idLine);
-        int selectedId;
-        while (idStream >> selectedId) {
-            if (ids.count(selectedId) > 0) {
-                selectedIds.insert(selectedId);
-            }
-            else {
-                cout << "ID " << selectedId << " is not in the found list.\n";
-            }
-        }
-        ids = selectedIds;
-    }
-
-    if (ids.empty()) {
-        cout << "No pipes selected for editing.\n";
-        return;
-    }
-
-    cout << "Batch editing " << ids.size() << " pipes.\n";
-    cout << "Change 'in repair' flag? (0 = no change, 1 = set true, 2 = set false)\n";
-    cout << "Choice: ";
-    int rf = GetCorrectNumber(0, 2);
-    int changeFlag = -1;
-    if (rf == 1) changeFlag = 1; // Установить 'в ремонте'
-    else if (rf == 2) changeFlag = 0; // Установить 'не в ремонте'
-
+    cout << "\nSelected " << ids.size() << " pipes for editing:\n";
     for (int id : ids) {
-        Pipe& p = manager.getPipeById(id);  
-        if (p.getId() != 0) {
-            if (changeFlag == 0) {
-                p.setInRepair(false);
-            }
-            else if (changeFlag == 1) {
-                p.setInRepair(true);
-            }
-        }
+        cout << manager.getPipeById(id) << "\n";
     }
-    cout << "Batch editing completed for " << ids.size() << " pipes.\n";
+
+    cout << "\nSet repair status: (1) In repair, (0) Not in repair: ";
+    bool newStatus = GetCorrectNumber(0, 1) == 1;
+
+    cout << "Confirm? (1-yes, 0-no): ";
+    if (GetCorrectNumber(0, 1) == 1) {
+        vector<int> idVector(ids.begin(), ids.end());
+        manager.batchEditPipes(idVector, newStatus ? 1 : 0);
+        cout << "Updated " << ids.size() << " pipes.\n";
+    }
 }
 
 void listAllPipes(Manager& manager){
@@ -199,15 +174,10 @@ void editStation(Manager& manager){
     }
     cout << s << "\n";
 
-    cout << "New name: ";
-    string n;
-    INPUT_LINE(cin, n);
-
     cout << "New working: ";
     string work;
     INPUT_LINE(cin, work);
 
-    if (!n.empty()) s.setName(n);
 
     if (!work.empty()) {
         try {
@@ -234,73 +204,57 @@ void deleteStation(Manager& manager) {
     if (manager.removeStationById(id)) cout << "Deleted.\n"; else cout << "Not found.\n";
 }
 
-void batchEditStations(Manager& manager){
-    cout << "Search stations for batch editing:\n";
-    cout << "1) by name\n";
-    cout << "2) by idle percent\n";
-    cout << "3) enter IDs manually\n";
-    cout << "Choose search method: ";
+void batchEditStations(Manager& manager) {
+    cout << "\n=== Batch Edit Stations ===\n";
+    cout << "Search stations by:\n";
+    cout << "1. By name\n";
+    cout << "2. By idle percent\n";
+    cout << "3. By IDs\n";
+    cout << "Choice: ";
 
-    int n = GetCorrectNumber(1, 3);
+    int choice = GetCorrectNumber(1, 3);
 
     set<int> ids;
 
-    if (n == 1) { 
+    if (choice == 1) {
         cout << "Enter substring of name: ";
         string q;
         INPUT_LINE(cin, q);
-        auto res = manager.findStationsByName(q);
-        cout << "Found " << res.size() << " stations:\n";
-        for (auto s : res) {
-            cout << s << "\n";
-            ids.insert(s.getId());
+
+        ids = find_by_filter(manager.getStations(), filter_station_by_name, q);
+        cout << "Found " << ids.size() << " stations:\n";
+
+        for (int id : ids) {
+            cout << manager.getStationById(id) << "\n";
         }
     }
-    else if (n == 2) {
-        cout << "Min idle percent (e.g., 50.0): ";
+    else if (choice == 2) {
+        cout << "Minimum idle percent (0-100): ";
         double perc = GetCorrectNumber(0.0, 100.0);
-        auto res = manager.findStationsByIdlePercent(perc);
-        cout << "Found " << res.size() << " stations:\n";
-        for (auto s : res) {
-            cout << s << "\n";
-            ids.insert(s.getId());
+
+        ids = find_by_filter(manager.getStations(), filter_station_by_idle_percent, perc);
+        cout << "Found " << ids.size() << " stations:\n";
+
+        for (int id : ids) {
+            cout << manager.getStationById(id) << "\n";
         }
     }
-    else if (n == 3) {
-        cout << "Enter IDs: ";
-        string line;
-        INPUT_LINE(cin, line);
-        istringstream iss(line);
-        int v;
-        while (iss >> v) ids.insert(v);
-        cout << "Selected " << ids.size() << " stations for editing.\n";
-    }
+    else if (choice == 3) {
+        cout << "Enter IDs (0 to finish):\n";
+        while (true) {
+            cout << "ID: ";
+            int inputId = GetCorrectNumber(0, 10000);
+            if (inputId == 0) break;
 
-    if (ids.empty()) {
-        cout << "No stations selected for editing.\n";
-        return;
-    }
-
-    cout << "You selected " << ids.size() << " stations for batch editing.\n";
-    cout << "Do you want to edit all of them? (1-yes/0-no): ";
-    int confirm = GetCorrectNumber(0, 1);
-
-    if (confirm == 0) {
-        set<int> selectedIds;
-        cout << "Enter the IDs you want to edit (separated by space): ";
-        string idLine;
-        INPUT_LINE(cin, idLine);
-        istringstream idStream(idLine);
-        int selectedId;
-        while (idStream >> selectedId) {
-            if (ids.count(selectedId) > 0) {
-                selectedIds.insert(selectedId);
+            CompressorStation& station = manager.getStationById(inputId);
+            if (station.getId() == 0) {
+                cout << "Station with ID " << inputId << " not found!\n";
             }
             else {
-                cout << "ID " << selectedId << " is not in the found list.\n";
+                ids.insert(inputId);
+                cout << "Added station ID: " << inputId << "\n";
             }
         }
-        ids = selectedIds;
     }
 
     if (ids.empty()) {
@@ -308,16 +262,35 @@ void batchEditStations(Manager& manager){
         return;
     }
 
-    cout << "Batch editing " << ids.size() << " stations.\n";
-    cout << "Change working workshops? (0 = no change, 1 = +1, 2 = -1)\n";
+    cout << "\nSelected " << ids.size() << " stations:\n";
+    for (int id : ids) {
+        cout << manager.getStationById(id) << "\n";
+    }
+
+    cout << "\nChange working workshops:\n";
+    cout << "0. No change\n";
+    cout << "1. Increase by 1\n";
+    cout << "2. Decrease by 1\n";
     cout << "Choice: ";
+
     int wf = GetCorrectNumber(0, 2);
-    int workingStationsFlag = 0;
-    if (wf == 1) workingStationsFlag = 1;   
-    else if (wf == 2) workingStationsFlag = -1; 
-    vector<int> idVector(ids.begin(), ids.end());
-    manager.batchEditStations(idVector, "", workingStationsFlag);
-    cout << "Batch editing completed for " << ids.size() << " stations.\n";
+
+    if (wf == 0) {
+        cout << "No changes made.\n";
+        return;
+    }
+
+    int workingStationsFlag = (wf == 1) ? 1 : -1;
+
+    cout << "Confirm? (1-yes, 0-no): ";
+    if (GetCorrectNumber(0, 1) == 1) {
+        vector<int> idVector(ids.begin(), ids.end());
+        manager.batchEditStations(idVector, workingStationsFlag);
+        cout << "Updated " << ids.size() << " stations.\n";
+    }
+    else {
+        cout << "Operation cancelled.\n";
+    }
 }
 
 void listAllStations(Manager& manager) {
@@ -365,6 +338,7 @@ int main() {
     ofstream logfile(filename);
     if (logfile)
         cerr_out.redirect(logfile);
+
     Manager manager;
     cout << "=== Pipe and Compressor Station Manager ===\n";
 

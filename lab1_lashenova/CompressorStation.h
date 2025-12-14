@@ -22,7 +22,6 @@ public:
     int getWorkingWorkshops() const;
     std::string getClassification() const;
 
-    void setName(const std::string& n);
     void setTotalWorkshops(int t);
     void setWorkingWorkshops(int w);
 

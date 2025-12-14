@@ -5,7 +5,7 @@
 
 Pipe::Pipe() : id(0), name(""), diameter(0.0), in_repair(false) {}
 
-Pipe::Pipe(int id_, const std::string& name_,int diameter_, bool in_repair_)
+Pipe::Pipe(int id_, const std::string& name_,double diameter_, bool in_repair_)
     : id(id_), name(name_), diameter(diameter_), in_repair(in_repair_) {
 }
 

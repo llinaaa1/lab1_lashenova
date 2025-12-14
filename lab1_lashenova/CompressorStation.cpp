@@ -3,7 +3,7 @@
 #include <limits>
 
 CompressorStation::CompressorStation() 
-    : id(0), name(""), total_workshops(0), working_workshops(0), classification("") {
+    : id(0), name(""), total_workshops(0), working_workshops(0), classification() {
 }
 
 CompressorStation::CompressorStation(int id_, const std::string& name_, int total_, int working_, const std::string& classification_)
@@ -14,9 +14,8 @@ int CompressorStation::getId() const { return id; }
 std::string CompressorStation::getName() const { return name; }
 int CompressorStation::getTotalWorkshops() const { return total_workshops; }
 int CompressorStation::getWorkingWorkshops() const { return working_workshops; }
-std::string CompressorStation::getClassification() const { return classification; }
+std:: string CompressorStation::getClassification() const { return classification; }
 
-void CompressorStation::setName(const std::string& n) { name = n; }
 void CompressorStation::setTotalWorkshops(int t) { total_workshops = t; }
 void CompressorStation::setWorkingWorkshops(int w) { working_workshops = w; }
 
