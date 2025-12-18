@@ -14,7 +14,6 @@ private:
 public:
     Pipe();
     Pipe(int id_, const std::string& name_, double diameter_, bool in_repair_);
-
     
     int getId() const;
     std::string getName() const;
